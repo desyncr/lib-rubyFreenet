@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+  <title>new (FreenetPage)</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <link rel="stylesheet" href="../.././rdoc-style.css" type="text/css" media="screen" />
+</head>
+<body class="standalone-code">
+  <pre><span class="ruby-comment cmt"># File indexr/indexer.rb, line 192</span>
+  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">url</span>, <span class="ruby-identifier">data</span>)
+    <span class="ruby-ivar">@uri</span> = <span class="ruby-constant">Freenet</span><span class="ruby-operator">::</span><span class="ruby-constant">URI</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">url</span>)
+    <span class="ruby-ivar">@rank</span> = <span class="ruby-value">0</span>
+    <span class="ruby-ivar">@data</span> = <span class="ruby-identifier">data</span>
+    <span class="ruby-ivar">@links</span> = []
+    <span class="ruby-ivar">@meta</span> = {}
+    <span class="ruby-ivar">@category</span> = <span class="ruby-identifier">:unknown</span>
+    <span class="ruby-ivar">@page</span> = <span class="ruby-constant">BeautifulSoup</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">data</span>)
+    <span class="ruby-identifier">raise</span> <span class="ruby-constant">FreenetPageError</span>.<span class="ruby-identifier">new</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@page</span>.<span class="ruby-identifier">nil?</span>
+    <span class="ruby-ivar">@page</span>.<span class="ruby-identifier">find_all</span>(<span class="ruby-value str">'a'</span>).<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">link</span><span class="ruby-operator">|</span>
+      <span class="ruby-keyword kw">begin</span>
+        <span class="ruby-identifier">href</span> = <span class="ruby-identifier">link</span>[<span class="ruby-value str">'href'</span>] <span class="ruby-keyword kw">or</span> <span class="ruby-keyword kw">next</span>
+        <span class="ruby-ivar">@links</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">merge</span>(<span class="ruby-identifier">href</span>)
+      <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">Freenet</span><span class="ruby-operator">::</span><span class="ruby-constant">URIError</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">e</span>
+        <span class="ruby-identifier">puts</span> <span class="ruby-value str">'Invalid URI'</span>
+      <span class="ruby-keyword kw">end</span>
+    <span class="ruby-keyword kw">end</span>
+    
+    <span class="ruby-ivar">@title</span> = <span class="ruby-ivar">@page</span>.<span class="ruby-identifier">html</span>.<span class="ruby-identifier">head</span>.<span class="ruby-identifier">title</span>.<span class="ruby-identifier">string</span> <span class="ruby-operator">||</span> <span class="ruby-value str">&quot;No Title&quot;</span>
+    
+    <span class="ruby-ivar">@page</span>.<span class="ruby-identifier">find_all</span>(<span class="ruby-value str">'meta'</span>).<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">meta</span><span class="ruby-operator">|</span>
+      <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">meta</span>[<span class="ruby-value str">'name'</span>] <span class="ruby-keyword kw">and</span> <span class="ruby-identifier">meta</span>[<span class="ruby-value str">'content'</span>]
+        <span class="ruby-ivar">@meta</span>[<span class="ruby-identifier">meta</span>[<span class="ruby-value str">'name'</span>].<span class="ruby-identifier">downcase</span>] = <span class="ruby-identifier">meta</span>[<span class="ruby-value str">'content'</span>]
+      <span class="ruby-keyword kw">end</span>
+    <span class="ruby-keyword kw">end</span>
+  <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">Exception</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">e</span> <span class="ruby-comment cmt"># Raise this if we can't make the page, for whatever reason.</span>
+    <span class="ruby-identifier">raise</span> <span class="ruby-constant">FreenetPageError</span>.<span class="ruby-identifier">new</span>
+  <span class="ruby-keyword kw">end</span></pre>
+</body>
+</html>

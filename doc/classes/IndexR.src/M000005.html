@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+  <title>new (IndexR)</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <link rel="stylesheet" href="../.././rdoc-style.css" type="text/css" media="screen" />
+</head>
+<body class="standalone-code">
+  <pre><span class="ruby-comment cmt"># File indexr/indexer.rb, line 24</span>
+  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>
+    <span class="ruby-ivar">@process_threads</span> = [] <span class="ruby-comment cmt"># all the processing threads, so we can cull them</span>
+    <span class="ruby-ivar">@waiting_urls</span> = [] <span class="ruby-comment cmt"># The URIs waiting for response from Freenet</span>
+    <span class="ruby-ivar">@all_uris</span> = [] <span class="ruby-comment cmt"># All URIs checked, to prevent doubleups</span>
+    <span class="ruby-ivar">@pages</span> = {} <span class="ruby-comment cmt"># All page objects created</span>
+    <span class="ruby-ivar">@pages_semaphore</span> = <span class="ruby-constant">Mutex</span>.<span class="ruby-identifier">new</span> <span class="ruby-comment cmt"># Used to sync operations on @pages</span>
+    <span class="ruby-ivar">@mutex</span> = <span class="ruby-constant">Mutex</span>.<span class="ruby-identifier">new</span> <span class="ruby-comment cmt"># Used for any other member variables</span>
+    <span class="ruby-ivar">@mutex</span>.<span class="ruby-identifier">lock</span>
+    <span class="ruby-comment cmt"># Log in to the client. We specify a static client name so only one instance can run</span>
+    <span class="ruby-comment cmt"># at a time.</span>
+    <span class="ruby-ivar">@client</span> = <span class="ruby-constant">Freenet</span><span class="ruby-operator">::</span><span class="ruby-constant">FCP</span><span class="ruby-operator">::</span><span class="ruby-constant">Client</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value str">'IndexR'</span>)
+    
+    <span class="ruby-comment cmt"># Start mining the pages</span>
+    <span class="ruby-constant">START_PAGES</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">page</span><span class="ruby-operator">|</span>
+      <span class="ruby-identifier">mine_page</span>(<span class="ruby-constant">Freenet</span><span class="ruby-operator">::</span><span class="ruby-constant">URI</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">page</span>))
+    <span class="ruby-keyword kw">end</span>
+    <span class="ruby-ivar">@mutex</span>.<span class="ruby-identifier">unlock</span>
+    
+    <span class="ruby-identifier">puts</span> <span class="ruby-value str">'Starting processing'</span>
+    <span class="ruby-comment cmt"># This loop culls threads and checks if processing is complete</span>
+    <span class="ruby-identifier">loop</span> <span class="ruby-keyword kw">do</span>
+      <span class="ruby-ivar">@mutex</span>.<span class="ruby-identifier">lock</span>
+      <span class="ruby-ivar">@process_threads</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">thread</span><span class="ruby-operator">|</span>
+        <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;Thread count: #{@process_threads.length}&quot;</span>
+        <span class="ruby-keyword kw">begin</span>
+          <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">thread</span>.<span class="ruby-identifier">join</span>(<span class="ruby-value">0</span><span class="ruby-value">.5</span>)
+            <span class="ruby-ivar">@process_threads</span>.<span class="ruby-identifier">delete_if</span> {<span class="ruby-operator">|</span><span class="ruby-identifier">x</span><span class="ruby-operator">|</span> <span class="ruby-identifier">x</span><span class="ruby-operator">==</span><span class="ruby-identifier">thread</span>}
+          <span class="ruby-keyword kw">end</span>
+        <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">Exception</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">e</span> <span class="ruby-comment cmt"># Make sure a mistake in a thread doesn't kill everything... Could be done better</span>
+          <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;Exception in processing thread: #{e.to_s}&quot;</span>
+          <span class="ruby-identifier">puts</span> <span class="ruby-identifier">e</span>.<span class="ruby-identifier">backtrace</span>.<span class="ruby-identifier">join</span>(<span class="ruby-value str">&quot;\n&quot;</span>)
+          <span class="ruby-ivar">@process_threads</span>.<span class="ruby-identifier">delete_if</span> {<span class="ruby-operator">|</span><span class="ruby-identifier">x</span><span class="ruby-operator">|</span> <span class="ruby-identifier">x</span><span class="ruby-operator">==</span><span class="ruby-identifier">thread</span>}
+        <span class="ruby-keyword kw">end</span>
+      <span class="ruby-keyword kw">end</span>
+      <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;URIs waiting: #{@waiting_urls.length}, Total Scanned: #{@all_uris.length}&quot;</span>
+      <span class="ruby-identifier">puts</span> <span class="ruby-ivar">@waiting_urls</span>.<span class="ruby-identifier">join</span>(<span class="ruby-value str">&quot;\n&quot;</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@waiting_urls</span>.<span class="ruby-identifier">size</span> <span class="ruby-operator">&lt;</span> <span class="ruby-value">3</span>
+      <span class="ruby-ivar">@mutex</span>.<span class="ruby-identifier">unlock</span>
+      <span class="ruby-identifier">sleep</span>(<span class="ruby-value">5</span>)
+      <span class="ruby-comment cmt"># If there are no waiting URLs and no processing threads we're done.</span>
+      <span class="ruby-comment cmt"># We should lock here...</span>
+      <span class="ruby-keyword kw">break</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@process_threads</span>.<span class="ruby-identifier">empty?</span> <span class="ruby-keyword kw">and</span> <span class="ruby-ivar">@waiting_urls</span>.<span class="ruby-identifier">empty?</span>
+    <span class="ruby-keyword kw">end</span>
+    <span class="ruby-identifier">puts</span> <span class="ruby-value str">'All processing done'</span>
+    <span class="ruby-identifier">create_index_page</span> <span class="ruby-comment cmt"># create the page</span>
+    <span class="ruby-identifier">puts</span> <span class="ruby-value str">'Disconnecting'</span>
+    <span class="ruby-ivar">@client</span>.<span class="ruby-identifier">disconnect</span> <span class="ruby-comment cmt"># disconnect</span>
+  <span class="ruby-keyword kw">end</span></pre>
+</body>
+</html>

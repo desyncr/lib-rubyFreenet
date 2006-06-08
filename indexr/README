@@ -1,0 +1,3 @@
+Indexr is a basic freenet spider. It starts off at the darknet index and descends in to pages from there.
+
+It should be a decent example on how to use rubyFreenet, it's quite well documented.

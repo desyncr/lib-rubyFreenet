@@ -1,0 +1,70 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+	"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html>
+	<head>
+		<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+		<title>Indexr: The freenet spider</title>
+		<meta name="description" content="Indexr: An automated categorized Freenet spider" />
+		<meta name="keywords" content="index directory links" />
+		<style type="text/css" media="screen">
+		/* <![CDATA[ */
+			body {
+				margin: 0;
+				padding: 0;
+				font-family: 'Verdana','Helvetica','Arial','Geneva',sans-serif;
+				font-size: 90%;
+			}
+			h1 {
+				border-bottom: 1px solid rgb(200, 200, 200);
+				padding: 0.4em;
+				background: rgb(200, 250, 200);
+				margin: 0;
+			}
+			
+			h2 {
+				border-bottom: 1px solid rgb(200, 200, 200);
+				font-size: 120%;
+				padding: 0.2em;
+				padding-left: 1.5em;
+				margin: 0;
+			}
+			
+			#contents {
+				padding: 1em;
+			}
+			
+			.description {
+				padding-left: 2em;
+			}
+			
+			.page {
+				margin-bottom: .5em;
+			}
+			
+			a:link {
+				font-weight: bold;
+			}
+		/* ]]> */
+		</style>
+	</head>
+	<body>
+		<h1>Indexr: <%=Time.now.strftime("%d/%m/%Y")%></h1>
+		<h2>Pages</h2>
+		<div id="contents">
+			<% category = ''%>
+			<% @sorted_pages.each do |page| -%>
+				<% if category != page.category -%>
+				<h3><%= page.category.to_s %></h3>
+				<% category = page.category %>
+				<% end %>
+				<div class="page">
+				<a href="/<%=page.uri.uri%>"><%=page.title%></a> <%=page.uri.path%> Rank: <%=((page.rank*100).ceil).to_f/100%><br />
+				<% if page.meta['description'] -%>
+				<div class="description"><%=page.meta['description']%></div>
+				<div class="description"><%=page.meta['keywords']%></div>
+				<% end -%>
+				</div>
+			<% end -%>
+		</div>
+	</body>
+</html>

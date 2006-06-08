@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+  <title>mine_page (IndexR)</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <link rel="stylesheet" href="../.././rdoc-style.css" type="text/css" media="screen" />
+</head>
+<body class="standalone-code">
+  <pre><span class="ruby-comment cmt"># File indexr/indexer.rb, line 74</span>
+  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">mine_page</span>(<span class="ruby-identifier">uri</span>, <span class="ruby-identifier">depth</span>=<span class="ruby-value">0</span>)
+    <span class="ruby-comment cmt"># Filter out pages we don't want (images, binaries)</span>
+    <span class="ruby-keyword kw">case</span> <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">path</span>
+    <span class="ruby-keyword kw">when</span> <span class="ruby-regexp re">/\.html$/</span>
+    <span class="ruby-keyword kw">when</span> <span class="ruby-regexp re">/\.htm$/</span>
+    <span class="ruby-keyword kw">when</span> <span class="ruby-regexp re">/\/$/</span>
+    <span class="ruby-keyword kw">when</span> <span class="ruby-value str">''</span>
+    <span class="ruby-keyword kw">when</span> <span class="ruby-keyword kw">nil</span>
+    <span class="ruby-keyword kw">else</span>
+      <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;Ignoring path '#{uri.path.to_s}'&quot;</span>
+      <span class="ruby-keyword kw">return</span>
+    <span class="ruby-keyword kw">end</span>
+    
+    <span class="ruby-comment cmt"># Check that we don't duplicate the page request</span>
+    <span class="ruby-identifier">uri_queued</span> = <span class="ruby-keyword kw">false</span>
+    <span class="ruby-ivar">@pages_semaphore</span>.<span class="ruby-identifier">synchronize</span> <span class="ruby-keyword kw">do</span>
+      <span class="ruby-identifier">uri_queued</span> = <span class="ruby-keyword kw">true</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@all_uris</span>.<span class="ruby-identifier">include?</span> <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">uri</span>
+      <span class="ruby-ivar">@waiting_urls</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">uri</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">uri_queued</span>
+      <span class="ruby-ivar">@all_uris</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">uri</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">uri_queued</span>
+    <span class="ruby-keyword kw">end</span>
+    <span class="ruby-comment cmt"># If it's already being checked we stop</span>
+    <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">uri_queued</span>
+      <span class="ruby-keyword kw">return</span>
+    <span class="ruby-keyword kw">end</span>
+    
+    <span class="ruby-comment cmt"># Get the page</span>
+    <span class="ruby-ivar">@client</span>.<span class="ruby-identifier">get</span>(<span class="ruby-identifier">uri</span>.<span class="ruby-identifier">uri</span>, <span class="ruby-keyword kw">true</span>, <span class="ruby-value str">&quot;Persistence&quot;</span>=<span class="ruby-operator">&gt;</span><span class="ruby-value str">'connection'</span>,<span class="ruby-value str">'PriorityClass'</span>=<span class="ruby-operator">&gt;</span><span class="ruby-value">3</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">status</span>, <span class="ruby-identifier">message</span>, <span class="ruby-identifier">response</span><span class="ruby-operator">|</span>
+      <span class="ruby-ivar">@mutex</span>.<span class="ruby-identifier">lock</span> <span class="ruby-comment cmt"># Lock the object</span>
+      <span class="ruby-keyword kw">case</span> <span class="ruby-identifier">status</span>
+      <span class="ruby-keyword kw">when</span> <span class="ruby-identifier">:finished</span> <span class="ruby-comment cmt"># If we have the data and it's text/html we process it.</span>
+        <span class="ruby-identifier">page</span> = <span class="ruby-identifier">response</span>.<span class="ruby-identifier">data</span>
+        <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">message</span>.<span class="ruby-identifier">content_type</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/^text\/html/</span>
+          <span class="ruby-identifier">thread</span> = <span class="ruby-constant">Thread</span>.<span class="ruby-identifier">new</span> <span class="ruby-keyword kw">do</span> <span class="ruby-comment cmt"># Do it in a new thread, just because.</span>
+            <span class="ruby-keyword kw">begin</span>
+              <span class="ruby-identifier">process_page</span>(<span class="ruby-identifier">uri</span>, <span class="ruby-identifier">response</span>.<span class="ruby-identifier">data</span>, <span class="ruby-identifier">depth</span>)
+            <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">Exception</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">e</span>
+              <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;#{e.to_s}&quot;</span>
+            <span class="ruby-keyword kw">end</span>
+          <span class="ruby-keyword kw">end</span>
+          <span class="ruby-ivar">@process_threads</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">thread</span>
+        <span class="ruby-keyword kw">else</span>
+          <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;Unknown content type: #{message.content_type} URI:#{uri.uri}&quot;</span>
+        <span class="ruby-keyword kw">end</span>
+      <span class="ruby-keyword kw">when</span> <span class="ruby-identifier">:failed</span> <span class="ruby-comment cmt"># If it failed then we ditch the URI</span>
+        <span class="ruby-ivar">@pages_semaphore</span>.<span class="ruby-identifier">synchronize</span> <span class="ruby-keyword kw">do</span>
+          <span class="ruby-ivar">@waiting_urls</span>.<span class="ruby-identifier">delete_if</span> {<span class="ruby-operator">|</span><span class="ruby-identifier">u</span><span class="ruby-operator">|</span> <span class="ruby-identifier">u</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">uri</span>}
+        <span class="ruby-keyword kw">end</span>
+      <span class="ruby-keyword kw">when</span> <span class="ruby-identifier">:redirect</span> <span class="ruby-comment cmt"># In case of redirect we issue a new request for it.</span>
+        <span class="ruby-ivar">@pages_semaphore</span>.<span class="ruby-identifier">synchronize</span> <span class="ruby-keyword kw">do</span>
+          <span class="ruby-ivar">@waiting_urls</span>.<span class="ruby-identifier">delete_if</span> {<span class="ruby-operator">|</span><span class="ruby-identifier">u</span><span class="ruby-operator">|</span> <span class="ruby-identifier">u</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">uri</span>}
+        <span class="ruby-keyword kw">end</span>
+        <span class="ruby-ivar">@mutex</span>.<span class="ruby-identifier">unlock</span>
+        <span class="ruby-identifier">mine_page</span>(<span class="ruby-constant">Freenet</span><span class="ruby-operator">::</span><span class="ruby-constant">URI</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">response</span>.<span class="ruby-identifier">items</span>[<span class="ruby-value str">'RedirectURI'</span>]), <span class="ruby-identifier">depth</span>)
+        <span class="ruby-ivar">@mutex</span>.<span class="ruby-identifier">lock</span>
+      <span class="ruby-keyword kw">when</span> <span class="ruby-identifier">:retrying</span>
+        <span class="ruby-identifier">puts</span> <span class="ruby-value str">&quot;Got retry notification&quot;</span>
+      <span class="ruby-keyword kw">when</span> <span class="ruby-identifier">:pending</span>
+      <span class="ruby-keyword kw">end</span>
+      <span class="ruby-ivar">@mutex</span>.<span class="ruby-identifier">unlock</span>
+    <span class="ruby-keyword kw">end</span>
+  <span class="ruby-keyword kw">end</span></pre>
+</body>
+</html>

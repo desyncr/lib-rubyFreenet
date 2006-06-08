@@ -1,0 +1,492 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>Class: Freenet::FCP::Client</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <meta http-equiv="Content-Script-Type" content="text/javascript" />
+  <link rel="stylesheet" href="../../.././rdoc-style.css" type="text/css" media="screen" />
+  <script type="text/javascript">
+  // <![CDATA[
+
+  function popupCode( url ) {
+    window.open(url, "Code", "resizable=yes,scrollbars=yes,toolbar=no,status=no,height=150,width=400")
+  }
+
+  function toggleCode( id ) {
+    if ( document.getElementById )
+      elem = document.getElementById( id );
+    else if ( document.all )
+      elem = eval( "document.all." + id );
+    else
+      return false;
+
+    elemStyle = elem.style;
+    
+    if ( elemStyle.display != "block" ) {
+      elemStyle.display = "block"
+    } else {
+      elemStyle.display = "none"
+    }
+
+    return true;
+  }
+  
+  // Make codeblocks hidden by default
+  document.writeln( "<style type=\"text/css\">div.method-source-code { display: none }</style>" )
+  
+  // ]]>
+  </script>
+
+</head>
+<body>
+
+
+
+    <div id="classHeader">
+        <table class="header-table">
+        <tr class="top-aligned-row">
+          <td><strong>Class</strong></td>
+          <td class="class-name-in-header">Freenet::FCP::Client</td>
+        </tr>
+        <tr class="top-aligned-row">
+            <td><strong>In:</strong></td>
+            <td>
+                <a href="../../../files/freenet/fcp/client_rb.html">
+                freenet/fcp/client.rb
+                </a>
+        <br />
+            </td>
+        </tr>
+
+        <tr class="top-aligned-row">
+            <td><strong>Parent:</strong></td>
+            <td>
+                Object
+            </td>
+        </tr>
+        </table>
+    </div>
+  <!-- banner header -->
+
+  <div id="bodyContent">
+
+
+
+  <div id="contextContent">
+
+    <div id="description">
+      <p>
+Implements <a href="../../Freenet.html">Freenet</a> <a
+href="Client.html">Client</a> Protocol client in Ruby. It is multithreaded
+and mostly thread-safe.
+</p>
+<h2>Bugs</h2>
+<p>
+Probably many. This should get better.
+</p>
+<h2>Future Development</h2>
+<p>
+I hope to add more convinience methods, such as being able to insert data
+from any IO object instead of strings only. ClientPutDir and
+ClientPutComplexDir still need to be implemented.
+</p>
+<p>
+Polling-based asynchronous use may be implemented if there&#8217;s demand.
+</p>
+<p>
+I probably need to tidy up the exception structure.
+</p>
+<h2>Examples</h2>
+<h3>Synchronous Use</h3>
+<p>
+Synchronous use is the easiest way to interface with <a
+href="../FCP.html">FCP</a>. The calling thread will block until a response
+is received from the server. This is limited in use as responses may take a
+long time.
+</p>
+<p>
+<a href="Client.html">Client</a> names are unique to an application. If
+your application may have more than one instance per node then each
+instance must have a unique name. In the event of a name conflict FRED
+assumes that the original application has died and the new one is a
+replacement and disconnects the oldest connection,
+</p>
+<pre>
+ require 'freenet/client'
+ client = Freenet::FCP::Client.new('MyFreenetClient', '127.0.0.1', 9481)
+ file = client.get(&quot;KSK@gpl.txt&quot;)
+</pre>
+<h3>Asynchronous Use</h3>
+<p>
+There are two methods to asynchronous requests, both with their own merits
+</p>
+<h4>Polling</h4>
+<p>
+Polling is not implemented yet, but Messages will have a ResponseQueue
+where responses can be read in order or recipt.
+</p>
+<h4>Callbacks</h4>
+<p>
+<a href="Message.html">FCP::Message</a> can take a block to run as soon as
+a reply is received. These blocks run in a separate thread, so they must be
+thread safe if they use variables outside their scope. The block arguments
+are |status, message, response|, message is the original message for
+reference purposes.
+</p>
+<pre>
+ client.get(&quot;KSK@gpl.txt&quot;) do |status, message, response|
+   case status
+   when :finished then puts response.data
+   end
+ end
+</pre>
+<p>
+See method details for possible status codes. All callbacks may get the
+following
+</p>
+<dl>
+<dt>:error</dt><dd><a href="../../Freenet.html">Freenet</a> reported a ProtocolError
+
+</dd>
+</dl>
+<h4>Thread safety</h4>
+<p>
+In callbacks the messages are locked before the callback runs. Always
+acquire locks with <a href="Message.html#M000010">Message#lock</a> before
+using, but don&#8217;t forget to release with <a
+href="Message.html#M000011">Message#unlock</a>.
+</p>
+<p>
+Message#synchronize may be implemented later.
+</p>
+
+    </div>
+
+
+   </div>
+
+    <div id="method-list">
+      <h3 class="section-bar">Methods</h3>
+
+      <div class="name-list">
+      <a href="#M000016">connect</a>&nbsp;&nbsp;
+      <a href="#M000017">disconnect</a>&nbsp;&nbsp;
+      <a href="#M000019">generate_keypair</a>&nbsp;&nbsp;
+      <a href="#M000020">get</a>&nbsp;&nbsp;
+      <a href="#M000018">load_request</a>&nbsp;&nbsp;
+      <a href="#M000015">new</a>&nbsp;&nbsp;
+      <a href="#M000021">put</a>&nbsp;&nbsp;
+      <a href="#M000022">putdir</a>&nbsp;&nbsp;
+      <a href="#M000023">request_status</a>&nbsp;&nbsp;
+      </div>
+    </div>
+
+  </div>
+
+
+    <!-- if includes -->
+    <div id="includes">
+      <h3 class="section-bar">Included Modules</h3>
+
+      <div id="includes-list">
+        <span class="include-name">Logger::Severity</span>
+      </div>
+    </div>
+
+    <div id="section">
+
+
+
+
+
+      
+
+
+    <!-- if method_list -->
+    <div id="methods">
+      <h3 class="section-bar">Public Class methods</h3>
+
+      <div id="method-M000015" class="method-detail">
+        <a name="M000015"></a>
+
+        <div class="method-heading">
+          <a href="Client.src/M000015.html" target="Code" class="method-signature"
+            onclick="popupCode('Client.src/M000015.html');return false;">
+          <span class="method-name">new</span><span class="method-args">(client_name=nil, server=&quot;127.0.0.1&quot;, port=9481, options={})</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Constructor, prepares various settings and connects to the <a
+href="../../Freenet.html">Freenet</a> node
+</p>
+<dl>
+<dt>client_name</dt><dd>A unique identifier to your client, it should be the same for all
+connections. It allows persistent connections to find old requests
+
+</dd>
+<dt>server</dt><dd>The IP of the <a href="../FCP.html">FCP</a> host, normally 127.0.0.1
+
+</dd>
+<dt>port</dt><dd>The associated TCP port, normally 9481
+
+</dd>
+<dt>options</dt><dd>Currently unused.
+
+</dd>
+</dl>
+<p>
+raises <a href="FCPConnectionError.html">FCPConnectionError</a> if
+connection fails
+</p>
+        </div>
+      </div>
+
+      <h3 class="section-bar">Public Instance methods</h3>
+
+      <div id="method-M000016" class="method-detail">
+        <a name="M000016"></a>
+
+        <div class="method-heading">
+          <a href="Client.src/M000016.html" target="Code" class="method-signature"
+            onclick="popupCode('Client.src/M000016.html');return false;">
+          <span class="method-name">connect</span><span class="method-args">()</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Performs the connection and worker thread creation
+</p>
+<p>
+raises <a href="FCPConnectionError.html">FCPConnectionError</a> if
+something goes wrong
+</p>
+        </div>
+      </div>
+
+      <div id="method-M000017" class="method-detail">
+        <a name="M000017"></a>
+
+        <div class="method-heading">
+          <a href="Client.src/M000017.html" target="Code" class="method-signature"
+            onclick="popupCode('Client.src/M000017.html');return false;">
+          <span class="method-name">disconnect</span><span class="method-args">()</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Get the worker thread to disconnect. Doesn&#8216;t guarantee immediate
+disconnection as any message currently being read will still be processed
+</p>
+        </div>
+      </div>
+
+      <div id="method-M000019" class="method-detail">
+        <a name="M000019"></a>
+
+        <div class="method-heading">
+          <a href="Client.src/M000019.html" target="Code" class="method-signature"
+            onclick="popupCode('Client.src/M000019.html');return false;">
+          <span class="method-name">generate_keypair</span><span class="method-args">(async, &amp;callback)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Generates a keypair for SSK use. If used synchronously it returns
+[InsertURI, RequestURI], otherwise extract InsertURI and RequestURI from
+response.items
+</p>
+        </div>
+      </div>
+
+      <div id="method-M000020" class="method-detail">
+        <a name="M000020"></a>
+
+        <div class="method-heading">
+          <a href="Client.src/M000020.html" target="Code" class="method-signature"
+            onclick="popupCode('Client.src/M000020.html');return false;">
+          <span class="method-name">get</span><span class="method-args">(uri, async=false, options=nil, &amp;callback)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <h2>Request a file from <a href="../../Freenet.html">Freenet</a>.</h2>
+<p>
+Synchronous requests will either get the response message or a <a
+href="RequestFailed.html">RequestFailed</a> exception
+</p>
+<p>
+Asyncronous requests get a lot more status information. The messages are:
+</p>
+<dl>
+<dt>:pending</dt><dd>The message is in <a href="../../Freenet.html">Freenet</a>&#8217;s queue.
+
+</dd>
+<dt>:progress</dt><dd>A SimpleProgress message has been recieved
+
+</dd>
+<dt>:redirect</dt><dd>The node has found a redirect for the file. This is returned to the client
+so a new request can be started, redirects are <b>NOT</b> followed
+automatically
+
+</dd>
+<dt>:retrying</dt><dd>A non-fatal error has been encountered (eg remote node overloaded) and a
+retry is automatically happening. This is controlled by Message#retries
+
+</dd>
+<dt>:failed</dt><dd>The request has failed, more details in the response
+
+</dd>
+<dt>:found</dt><dd>The data has been found, but not returned to the client. If ReturnType is
+not direct (the default) now is the time to do something
+
+</dd>
+<dt>:finished</dt><dd>The data has been returned to the client, response.data has it
+
+</dd>
+</dl>
+<h3>Usage Examples</h3>
+<h4>Synchronous Use</h4>
+<pre>
+ gpl = client.get('KSK@gpl.txt')
+</pre>
+<h4>Asynchronous use</h4>
+<pre>
+ client.get('KSK@gpl.txt', false, 'Persistence'=&gt;'connection') do |status, message, response|
+   case status
+   when :finished then puts response.data
+   end
+ end
+</pre>
+        </div>
+      </div>
+
+      <div id="method-M000018" class="method-detail">
+        <a name="M000018"></a>
+
+        <div class="method-heading">
+          <a href="Client.src/M000018.html" target="Code" class="method-signature"
+            onclick="popupCode('Client.src/M000018.html');return false;">
+          <span class="method-name">load_request</span><span class="method-args">(message)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Loads a request in to the queue. This is for persistent requests, read the
+notes above for more details
+</p>
+        </div>
+      </div>
+
+      <div id="method-M000021" class="method-detail">
+        <a name="M000021"></a>
+
+        <div class="method-heading">
+          <a href="Client.src/M000021.html" target="Code" class="method-signature"
+            onclick="popupCode('Client.src/M000021.html');return false;">
+          <span class="method-name">put</span><span class="method-args">(uri, data=nil, async=false, options=nil, &amp;callback)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <h3>Put data in to freenet</h3>
+<p>
+This is a very simple put, if you wish to insert a directory then use
+Client#put_dir or Client#put_complex_dir.
+</p>
+<p>
+Synchronous requests get the inserted <a href="../URI.html">URI</a> or a <a
+href="RequestFailed.html">RequestFailed</a> exception. Asynchronous requsts
+get the following callbacks:
+</p>
+<dl>
+<dt>:uri_generated</dt><dd><a href="../../Freenet.html">Freenet</a> has generated the <a
+href="../URI.html">URI</a> (in +response.items[&#8216;<a
+href="../URI.html">URI</a>&#8217;]+). Insertion hasn&#8217;t happened at
+this stage, but the <a href="../URI.html">URI</a> is known
+
+</dd>
+<dt>:success</dt><dd>The data has been inserted successfully.
+
+</dd>
+<dt>:failed</dt><dd>The insertion has failed, response.items contains more information
+
+</dd>
+</dl>
+<h3>Usage Examples</h3>
+<h4>Putting data from Ruby</h4>
+<pre>
+ put('KSK@my-key', 'This is my text string', false, 'Metadata.ContentType'=&gt; 'text/plain')
+</pre>
+<h4>Putting a file from disk (must be local to server, not client)</h4>
+<pre>
+ put('KSK@my-key', nil, false, 'MetaData.ContentType'=&gt;'text/plain', 'UploadFrom'=&gt;'disk', 'Filename'=&gt;'/full/path/to/file')
+</pre>
+<h4>Creating a redirect <a href="../URI.html">URI</a></h4>
+<pre>
+ put('SSK@my-site-key/my-site/image.jpg', nil, false, 'UploadFrom'=&gt;'redirect','TargetURI'=&gt;'KSK@image.jpg')
+</pre>
+        </div>
+      </div>
+
+      <div id="method-M000022" class="method-detail">
+        <a name="M000022"></a>
+
+        <div class="method-heading">
+          <a href="Client.src/M000022.html" target="Code" class="method-signature"
+            onclick="popupCode('Client.src/M000022.html');return false;">
+          <span class="method-name">putdir</span><span class="method-args">(uri, dir, async=false, options=nil, &amp;callback)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Upload a directory to a key, either SSK or USK. This directory must be
+local to the node we&#8217;re connecting to.
+</p>
+        </div>
+      </div>
+
+      <div id="method-M000023" class="method-detail">
+        <a name="M000023"></a>
+
+        <div class="method-heading">
+          <a href="Client.src/M000023.html" target="Code" class="method-signature"
+            onclick="popupCode('Client.src/M000023.html');return false;">
+          <span class="method-name">request_status</span><span class="method-args">(identifier, global, async=false)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Get the request status for a persistent request. Not useful in synchronous
+systems.
+</p>
+<p>
+Any replies will be directed to the async message&#8217;s callback
+</p>
+        </div>
+      </div>
+
+
+    </div>
+
+
+  </div>
+
+
+<div id="validator-badges">
+  <p><small><a href="http://validator.w3.org/check/referer">[Validate]</a></small></p>
+</div>
+
+</body>
+</html>

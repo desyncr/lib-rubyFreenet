@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>Class: IndexR</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <meta http-equiv="Content-Script-Type" content="text/javascript" />
+  <link rel="stylesheet" href=".././rdoc-style.css" type="text/css" media="screen" />
+  <script type="text/javascript">
+  // <![CDATA[
+
+  function popupCode( url ) {
+    window.open(url, "Code", "resizable=yes,scrollbars=yes,toolbar=no,status=no,height=150,width=400")
+  }
+
+  function toggleCode( id ) {
+    if ( document.getElementById )
+      elem = document.getElementById( id );
+    else if ( document.all )
+      elem = eval( "document.all." + id );
+    else
+      return false;
+
+    elemStyle = elem.style;
+    
+    if ( elemStyle.display != "block" ) {
+      elemStyle.display = "block"
+    } else {
+      elemStyle.display = "none"
+    }
+
+    return true;
+  }
+  
+  // Make codeblocks hidden by default
+  document.writeln( "<style type=\"text/css\">div.method-source-code { display: none }</style>" )
+  
+  // ]]>
+  </script>
+
+</head>
+<body>
+
+
+
+    <div id="classHeader">
+        <table class="header-table">
+        <tr class="top-aligned-row">
+          <td><strong>Class</strong></td>
+          <td class="class-name-in-header">IndexR</td>
+        </tr>
+        <tr class="top-aligned-row">
+            <td><strong>In:</strong></td>
+            <td>
+                <a href="../files/indexr/indexer_rb.html">
+                indexr/indexer.rb
+                </a>
+        <br />
+            </td>
+        </tr>
+
+        <tr class="top-aligned-row">
+            <td><strong>Parent:</strong></td>
+            <td>
+                Object
+            </td>
+        </tr>
+        </table>
+    </div>
+  <!-- banner header -->
+
+  <div id="bodyContent">
+
+
+
+  <div id="contextContent">
+
+    <div id="description">
+      <p>
+Example for FreenetR useage.
+</p>
+<p>
+This is a very simple freenet spider. It starts at a URI, follows all HTML
+links if they have a valid <a href="Freenet.html">Freenet</a> URI and puts
+them on a page. Basic categorization is done based on tag density and META
+keywords and an erb file is called to produce HTML output.
+</p>
+<p>
+This isn&#8217;t a pretty example, but it works.
+</p>
+
+    </div>
+
+
+   </div>
+
+    <div id="method-list">
+      <h3 class="section-bar">Methods</h3>
+
+      <div class="name-list">
+      <a href="#M000008">create_index_page</a>&nbsp;&nbsp;
+      <a href="#M000006">mine_page</a>&nbsp;&nbsp;
+      <a href="#M000005">new</a>&nbsp;&nbsp;
+      <a href="#M000007">process_page</a>&nbsp;&nbsp;
+      </div>
+    </div>
+
+  </div>
+
+
+    <!-- if includes -->
+
+    <div id="section">
+
+
+    <div id="constants-list">
+      <h3 class="section-bar">Constants</h3>
+
+      <div class="name-list">
+        <table summary="Constants">
+        <tr class="top-aligned-row context-row">
+          <td class="context-item-name">RECURSE_DEPTH</td>
+          <td>=</td>
+          <td class="context-item-value">5</td>
+          <td width="3em">&nbsp;</td>
+          <td class="context-item-desc">
+The depth to follow links to. Remember that the number of pages tends to
+increase rapidly with a single depth increase
+
+</td>
+        </tr>
+        <tr class="top-aligned-row context-row">
+          <td class="context-item-name">START_PAGES</td>
+          <td>=</td>
+          <td class="context-item-value">[   &quot;USK@PFeLTa1si2Ml5sDeUy7eDhPso6TPdmw-2gWfQ4Jg02w,3ocfrqgUMVWA2PeorZx40TW0c-FiIOL-TWKQHoDbVdE,AQABAAE/Index/34/&quot;</td>
+          <td width="3em">&nbsp;</td>
+          <td class="context-item-desc">
+An array of URIs to start spidering with
+
+</td>
+        </tr>
+        </table>
+      </div>
+    </div>
+
+
+
+      
+
+
+    <!-- if method_list -->
+    <div id="methods">
+      <h3 class="section-bar">Public Class methods</h3>
+
+      <div id="method-M000005" class="method-detail">
+        <a name="M000005"></a>
+
+        <div class="method-heading">
+          <a href="IndexR.src/M000005.html" target="Code" class="method-signature"
+            onclick="popupCode('IndexR.src/M000005.html');return false;">
+          <span class="method-name">new</span><span class="method-args">()</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Start spidering
+</p>
+        </div>
+      </div>
+
+      <h3 class="section-bar">Public Instance methods</h3>
+
+      <div id="method-M000008" class="method-detail">
+        <a name="M000008"></a>
+
+        <div class="method-heading">
+          <a href="IndexR.src/M000008.html" target="Code" class="method-signature"
+            onclick="popupCode('IndexR.src/M000008.html');return false;">
+          <span class="method-name">create_index_page</span><span class="method-args">()</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Create index page. Sort pages and send to the erb template
+</p>
+        </div>
+      </div>
+
+      <div id="method-M000006" class="method-detail">
+        <a name="M000006"></a>
+
+        <div class="method-heading">
+          <a href="IndexR.src/M000006.html" target="Code" class="method-signature"
+            onclick="popupCode('IndexR.src/M000006.html');return false;">
+          <span class="method-name">mine_page</span><span class="method-args">(uri, depth=0)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Mine a page. uri is a <a href="Freenet/URI.html">Freenet::URI</a>. depth is
+managed by <a href="IndexR.html#M000006">mine_page</a> to ensure that we
+don&#8217;t exceed RECURSE_DEPTH
+</p>
+        </div>
+      </div>
+
+      <div id="method-M000007" class="method-detail">
+        <a name="M000007"></a>
+
+        <div class="method-heading">
+          <a href="IndexR.src/M000007.html" target="Code" class="method-signature"
+            onclick="popupCode('IndexR.src/M000007.html');return false;">
+          <span class="method-name">process_page</span><span class="method-args">(uri, page, depth)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Pull links out of a page and mine them deeper
+</p>
+        </div>
+      </div>
+
+
+    </div>
+
+
+  </div>
+
+
+<div id="validator-badges">
+  <p><small><a href="http://validator.w3.org/check/referer">[Validate]</a></small></p>
+</div>
+
+</body>
+</html>

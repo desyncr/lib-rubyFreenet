@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+  <title>new (Freenet::FCP::Message)</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <link rel="stylesheet" href="../../../.././rdoc-style.css" type="text/css" media="screen" />
+</head>
+<body class="standalone-code">
+  <pre><span class="ruby-comment cmt"># File freenet/fcp/message.rb, line 23</span>
+      <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">type</span>, <span class="ruby-identifier">data</span> = <span class="ruby-keyword kw">nil</span>, <span class="ruby-identifier">items</span> = [], <span class="ruby-identifier">callback</span> = <span class="ruby-keyword kw">nil</span>)
+        <span class="ruby-ivar">@retries</span> = <span class="ruby-value">0</span>
+        <span class="ruby-ivar">@type</span>, <span class="ruby-ivar">@data</span>, <span class="ruby-ivar">@items</span> = <span class="ruby-identifier">type</span>.<span class="ruby-identifier">to_s</span>, <span class="ruby-identifier">data</span>, <span class="ruby-identifier">items</span>
+        <span class="ruby-ivar">@items</span> = {} <span class="ruby-keyword kw">unless</span> <span class="ruby-ivar">@items</span>.<span class="ruby-identifier">kind_of?</span> <span class="ruby-constant">Hash</span>
+        <span class="ruby-ivar">@items</span>[<span class="ruby-value str">'Identifier'</span>] <span class="ruby-operator">||=</span> <span class="ruby-node">&quot;FCPMessage_#{MD5.md5(Time.now.to_s)}_#{rand(100000)}&quot;</span>
+        <span class="ruby-ivar">@identifier</span> = <span class="ruby-ivar">@items</span>[<span class="ruby-value str">'Identifier'</span>]
+        <span class="ruby-keyword kw">if</span> [<span class="ruby-value str">'ClientHello'</span>,<span class="ruby-value str">'NodeHello'</span>].<span class="ruby-identifier">include?</span> <span class="ruby-ivar">@type</span>
+          <span class="ruby-ivar">@identifier</span> = <span class="ruby-value str">'ClientHello'</span> 
+          <span class="ruby-ivar">@items</span>.<span class="ruby-identifier">delete</span>(<span class="ruby-value str">'Identifier'</span>)
+        <span class="ruby-keyword kw">end</span>
+        <span class="ruby-ivar">@callback</span> = <span class="ruby-identifier">callback</span>
+        <span class="ruby-ivar">@mutex</span> = <span class="ruby-constant">Mutex</span>.<span class="ruby-identifier">new</span>
+        <span class="ruby-ivar">@load_only</span> = <span class="ruby-keyword kw">false</span>
+      <span class="ruby-keyword kw">end</span></pre>
+</body>
+</html>

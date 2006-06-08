@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+  <title>categorize (FreenetPage)</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <link rel="stylesheet" href="../.././rdoc-style.css" type="text/css" media="screen" />
+</head>
+<body class="standalone-code">
+  <pre><span class="ruby-comment cmt"># File indexr/indexer.rb, line 237</span>
+  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">categorize</span>
+    <span class="ruby-identifier">links</span> = <span class="ruby-ivar">@page</span>.<span class="ruby-identifier">find_all</span>(<span class="ruby-value str">'a'</span>)
+    <span class="ruby-identifier">imgs</span> = <span class="ruby-ivar">@page</span>.<span class="ruby-identifier">find_all</span>(<span class="ruby-value str">'img'</span>)
+    <span class="ruby-identifier">total_count</span> = <span class="ruby-value">0</span>
+    <span class="ruby-identifier">tag_count</span> = <span class="ruby-ivar">@page</span>.<span class="ruby-identifier">find_all</span> {<span class="ruby-operator">|</span><span class="ruby-identifier">tag</span><span class="ruby-operator">|</span> <span class="ruby-identifier">total_count</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>}
+    <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">imgs</span>.<span class="ruby-identifier">size</span><span class="ruby-operator">/</span><span class="ruby-identifier">total_count</span>.<span class="ruby-identifier">to_f</span> <span class="ruby-operator">&gt;</span> <span class="ruby-value">0</span><span class="ruby-value">.3</span> <span class="ruby-keyword kw">or</span> (<span class="ruby-identifier">links</span>.<span class="ruby-identifier">size</span><span class="ruby-operator">/</span><span class="ruby-identifier">imgs</span>.<span class="ruby-identifier">size</span>) <span class="ruby-operator">&gt;</span> <span class="ruby-value">0</span><span class="ruby-value">.8</span>
+      <span class="ruby-identifier">:image_gallery</span>
+    <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">links</span>.<span class="ruby-identifier">size</span><span class="ruby-operator">/</span><span class="ruby-identifier">total_count</span>.<span class="ruby-identifier">to_f</span> <span class="ruby-operator">&gt;</span> <span class="ruby-value">0</span><span class="ruby-value">.3</span>
+      <span class="ruby-identifier">:link_directory</span>
+    <span class="ruby-keyword kw">else</span>
+      <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@meta</span>[<span class="ruby-value str">'keywords'</span>]
+        <span class="ruby-identifier">keywords</span> = <span class="ruby-ivar">@meta</span>[<span class="ruby-value str">'keywords'</span>].<span class="ruby-identifier">split</span>(<span class="ruby-value str">','</span>)
+        <span class="ruby-identifier">keywords</span>.<span class="ruby-identifier">collect!</span> {<span class="ruby-operator">|</span><span class="ruby-identifier">kw</span><span class="ruby-operator">|</span> <span class="ruby-identifier">kw</span>.<span class="ruby-identifier">downcase</span>}
+        <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">keywords</span>.<span class="ruby-identifier">include?</span> <span class="ruby-value str">'index'</span>
+          <span class="ruby-identifier">:index_site</span>
+        <span class="ruby-keyword kw">else</span>
+          <span class="ruby-identifier">:unknown</span>
+        <span class="ruby-keyword kw">end</span>
+      <span class="ruby-keyword kw">else</span>
+        <span class="ruby-identifier">:unknown</span>
+      <span class="ruby-keyword kw">end</span>
+    <span class="ruby-keyword kw">end</span>
+  <span class="ruby-keyword kw">end</span></pre>
+</body>
+</html>
