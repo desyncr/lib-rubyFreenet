@@ -266,7 +266,7 @@ module Freenet
                    'MaxRetries' => 10,
                    'PriorityClass' => 3,
                    'DefaultName' => 'index.html',
-                   'Filename' => dir.to_s
+                   'Filename' => dir.to_s,
                    'AllowUnreadableFiles' => 'true'}.merge(options || {})
         options['Persistence'] = 'connection' unless async
         options['URI'] = uri
