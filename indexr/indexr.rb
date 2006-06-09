@@ -1,5 +1,5 @@
 $:.push('../')
-require 'freenet_client'
+require 'freenet'
 require 'erb'
 require 'rubyful_soup'
 

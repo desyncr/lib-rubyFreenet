@@ -5,7 +5,7 @@ module Freenet
   # This could be completely wrong. Any criticism welcome
   class URI
     include Comparable
-    attr_reader :site, :path, :uri
+    attr_accessor :type, :site, :path, :uri, :version
     
     # This can take a URI in following formats:
     #  /freenet:SSK@...
@@ -23,7 +23,8 @@ module Freenet
       raise URIError.new("Invalid Freenet URI: #{uri}") unless uri =~ /^(?:[UKS]S|CH)K@/
       
       @uri = uri
-      @site = @uri.match(/^(?:[UKS]S|CH)K@[^\/]+/)[0]
+      @type = @uri.match(/^(?:[UKS]S|CH)K/)[0]
+      @site = @uri.match(/^(?:[UKS]S|CH)K@([^\/]+)/)[1]
       @path = @uri.match(/(\/[^#\?]+)/)[1] if @uri =~ /\/[^#\?]+/
       @anchor = @uri.match(/#(.+)/)[1] if @uri =~ /#.+/
       @query_string = @uri.match(/\?([^#]+)/)[1] if @uri =~ /\?/
@@ -31,7 +32,7 @@ module Freenet
 
     # Return a URI that can be fed to Freenet
     def uri
-      "#{@site}#{@path}#{"?#{@query_string}" if @query_string}#{"##{@anchor}" if @anchor}"
+      "#{@type}@#{@site}#{@path}#{'/'+@version.to_s if @version}#{"?#{@query_string}" if @query_string}#{"##{@anchor}" if @anchor}"
     end
     
     # Merge in a URI or a URI fragment and provide the finished URI. Attempts
@@ -45,12 +46,12 @@ module Freenet
       begin
         uri = URI.new(uri) unless uri.respond_to? :uri
         if uri.site == @site
-          return "#{@site}#{merge_paths(@path, uri.path)}"
+          return "#{@type}#{@site}#{merge_paths(@path, uri.path)}"
         else
           return uri.uri
         end
       rescue URIError => e # We have a fragment
-        "#{@site}#{merge_paths(@path, uri)}"
+        "#{@type}#{@site}#{merge_paths(@path, uri)}"
       end
     end
     

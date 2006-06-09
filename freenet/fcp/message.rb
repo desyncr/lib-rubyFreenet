@@ -59,7 +59,7 @@ module Freenet
       # called from any thread.
       def wait_for_response
         until @response
-          sleep(0.5)
+          sleep(3)
           lock
           unlock
           Thread.pass

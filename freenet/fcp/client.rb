@@ -133,7 +133,7 @@ module Freenet
       # Generates a keypair for SSK use. If used synchronously it returns
       # [InsertURI, RequestURI], otherwise extract InsertURI and RequestURI
       # from response.items
-      def generate_keypair(async, &callback)
+      def generate_keypair(async = false, &callback)
         message = Message.new('GenerateSSK', nil, nil, callback)
         send(message, async)
         if async

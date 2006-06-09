@@ -1,16 +1,16 @@
-require 'freenet_client'
+$:.push('../')
+require 'freenet'
 
 module Freenet
   class Site
-    attr_reader :keys
-    attr_accessor :version
+    attr_accessor :version, :client, :keys, :name
     def self.load(file)
       Marshal.load(IO.read(file))
     end
     
-    def initialize(type, path)
+    def initialize(type, path, name)
       raise SiteError.new('Invalid type') unless ['USK','SSK','CHK','KSK'].include? type
-      @path, @type = path, type
+      @path, @type, @name = path, type, name
       @version = ''
     end
     
@@ -22,7 +22,24 @@ module Freenet
       @keys = @client.generate_keypair
     end
     
-    def insert_site
+    def process_site
+      
+    end
+    
+    # Insert a whole site from disk
+    def insert_site(path = nil)
+      path ||= @path
+      case @type
+      when 'CHK', 'KSK' then raise SiteError.new('Invalid key type for site insert')
+      end
+      generate_key unless @keys
+      @uri ||= Freenet::URI.new(@keys[0])
+      @uri.type = @type
+      @uri.path = "/#{@name}"
+      @uri.version ||= 0
+      @uri.version += 1
+      puts "Insert key: #{@uri.uri}\nRequest key: #{@uri.uri}"
+      @client.putdir(@uri, path)
     end
     
     # Insert a single file. You probably want a CHK for this, use it to insert
@@ -45,17 +62,22 @@ module Freenet
         uri = "#{@type}@#{site}"
       end
       @client.put(uri, nil, true, 'UploadFrom'=>'disk','Filename'=>path) do |status, message, response|
-      when :uri_generated
-        puts "URI created: #{response.items['URI']}"
-      when :success
-        puts "File inserted successfully"
-      when :failed
-        puts "File insertion failed!"
+        case status
+        when :uri_generated
+          puts "URI created: #{response.items['URI']}"
+        when :success
+          puts "File inserted successfully"
+        when :failed
+          puts "File insertion failed!"
+        end
       end
     end
     
     def save(file)
+      client = @client
+      @client = nil
       File.open(file, 'w') {|f| f.write(Marshal.dump(self))}
+      @client = client
     end
   end
   
