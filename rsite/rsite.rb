@@ -4,6 +4,7 @@ require 'yaml'
 
 module Freenet
   class Site
+    attr_reader :name
     STORE_PATH = File.expand_path("~/.rubyFreenetSites")
     def self.add_site(site)
       existing_sites = load_sites

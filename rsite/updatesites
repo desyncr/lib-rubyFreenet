@@ -4,11 +4,24 @@ require 'rsite'
 require 'getoptlong'
 require 'rdoc/usage'
 
+opts = GetoptLong.new(
+  ['--name', '-n', GetoptLong::REQUIRED_ARGUMENT]
+)
+
+name = nil
+opts.each do |type, value|
+  case type
+  when '--name': name = value
+  end
+end
+
 sites = Freenet::Site.load_sites
 sites.each do |site|
-  site.connect
-  puts site.insert_site
-  site.disconnect
+  if name.nil? or name == site.name
+    site.connect
+    puts site.insert_site
+    site.disconnect
+  end
 end
 
 Freenet::Site.save_sites(sites)
