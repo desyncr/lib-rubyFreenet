@@ -87,7 +87,6 @@ module Freenet
         @messages = {}
         @running = false
         @lock = Mutex.new
-        @logger_mutex = Mutex.new
         @logger = Logger.new('FCPClientLog','daily')
         @message_queue = Queue.new
         connect
@@ -139,6 +138,7 @@ module Freenet
         if async
           message
         else
+          message.wait_for_response
           [message.response.items['InsertURI'], message.response.items['RequestURI']]
         end
       end
@@ -189,12 +189,13 @@ module Freenet
           message
         else
           loop do
+            message.wait_for_response
             message.lock
             case message.response.type
             when 'AllData'
               message.unlock
               return message.response
-            when 'GetFailed'
+            when 'GetFailed','ProtocolError'
               message.unlock
               raise RequestFailed.new(message.response)
             else
@@ -242,12 +243,13 @@ module Freenet
           message
         else
           loop do
+            message.wait_for_response
             message.lock
             case message.response.type
             when 'PutSuccessful'
               message.unlock
               return message.response.items['URI']
-            when 'PutFailed'
+            when 'PutFailed','ProtocolError'
               message.unlock
               raise RequestFailed.new(message.response)
             else
@@ -276,12 +278,13 @@ module Freenet
           message
         else
           loop do
+            message.wait_for_response
             message.lock
             case message.response.type
             when 'PutSuccessful'
               message.unlock
               return message.response.items['URI']
-            when 'PutFailed'
+            when 'PutFailed','ProtocolError'
               message.unlock
               raise RequestFailed.new(message.response)
             else
@@ -298,6 +301,7 @@ module Freenet
         log(DEBUG, 'Requesting status')
         message = Message.new('GetRequestStatus', nil, 'Identifier'=>identifier, 'Global'=>global)
         send(message, async)
+        message.wait_for_response
       end
 
       private
@@ -306,15 +310,16 @@ module Freenet
         log(DEBUG, 'Sending ClientHello')
         message = Message.new('ClientHello', nil, 'Name'=>@client_name, 'ExpectedVersion'=>'2.0')
         send(message)
+        message.wait_for_response
         log(DEBUG, "Got NodeHello - Freenet #{message.response.items['Version']}")
         if message.response.items['Testnet'] == 'true'
           log(WARN, "Connected to Testnet, you have no anonymity!")
         end
       end
 
-      # Logger utility method
+      # Logger utility method. Logger should be thread-safe
       def log(severity, message)
-        @logger_mutex.synchronize {@logger.add(severity, message)}
+        @logger.add(severity, message)
       end
 
       # Queue the message for sending by the worker thread.
@@ -324,9 +329,7 @@ module Freenet
       def send(message, asynchronous = false)
         log(DEBUG, "Queuing #{message.type} - #{message.identifier}")
         @message_queue << message
-        unless asynchronous
-          return message.wait_for_response
-        end
+        message
       end
 
       # Worker thread, loops every second or so and checks for new messages to send then messages
@@ -334,20 +337,29 @@ module Freenet
       def socket_thread
         @callback_threads = []
         loop do
+          # Join threads. Wait 0.1 seconds for each thread.
           @callback_threads.each do |thread|
             begin
-              thread.join(0.1)
+              @callback_threads.delete(thread) if thread.join(0.1)
             rescue RequestFinished=>e
               @messages.delete(e.message)
             rescue Exception=>e
               puts "Callback exception #{e}"
             end
           end
-          @lock.synchronize do
-            if @running == false
-              @socket.close
-              Thread.exit
+          
+          @messages.each do |k, m|
+            begin
+              m.try_lock
+            rescue
             end
+           end
+          
+          # I'm assuming that setting @running is atomic. There shouldn't be a race
+          # condition here as this thread will never set @running.
+          if @running == false
+            @socket.close
+            Thread.exit
           end
           begin
             while message = @message_queue.pop(true)
@@ -355,8 +367,9 @@ module Freenet
             end
           rescue ThreadError => e
           end
-
-          if select([@socket], nil, nil, 1)
+          
+          # Wait two seconds for communication, shouldn't slow down too much and should save CPU.
+          if select([@socket], nil, nil, 2)
             message = read_message
             dispatch_message(message)
           end
@@ -375,6 +388,7 @@ module Freenet
         if message.identifier
           original_message = @messages[message.identifier]
           if original_message
+            original_message.unlock
             original_message.reply = message
             thread = Thread.new do
               original_message.lock
@@ -449,6 +463,7 @@ module Freenet
         raise FCPConnectionError.new('Socket does not exist') unless @socket
         log(DEBUG, "Sending #{message.type} #{message.identifier}")
         @messages[message.identifier] ||= message
+        message.lock
         unless message.load_only
           log(DEBUG, "W: #{message.type}")
           @socket.write(message.type+"\n")

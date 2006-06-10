@@ -36,10 +36,18 @@ module Freenet
       end
       
       # Lock the object. Call before using in async situations
-      def lock; @mutex.lock; end
+      def lock(delay = 5)
+        until @mutex.try_lock
+          sleep(delay)
+        end
+      end
         
       # Unlock. Call after using asychronously
       def unlock; @mutex.unlock; end
+      
+      def locked?; @mutex.locked?; end
+        
+      def try_lock; @mutex.try_lock; end
       
       # Dispatch the callback. Private to FCP::Client
       def callback(status)
@@ -59,10 +67,10 @@ module Freenet
       # called from any thread.
       def wait_for_response
         until @response
-          sleep(3)
+          sleep(5)
+          next if locked?
           lock
           unlock
-          Thread.pass
         end
       end
     end

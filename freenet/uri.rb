@@ -5,7 +5,7 @@ module Freenet
   # This could be completely wrong. Any criticism welcome
   class URI
     include Comparable
-    attr_accessor :type, :site, :path, :uri, :version
+    attr_accessor :type, :site, :name, :path, :uri, :version
     
     # This can take a URI in following formats:
     #  /freenet:SSK@...
@@ -25,14 +25,40 @@ module Freenet
       @uri = uri
       @type = @uri.match(/^(?:[UKS]S|CH)K/)[0]
       @site = @uri.match(/^(?:[UKS]S|CH)K@([^\/]+)/)[1]
-      @path = @uri.match(/(\/[^#\?]+)/)[1] if @uri =~ /\/[^#\?]+/
+      case @type
+      when 'KSK', 'CHK'
+        @path = @uri.match(/(\/[^#\?]+)/)[1] if @uri =~ /\/[^#\?]+/
+      when 'SSK'
+        path = @uri.match(/(\/[^#\?]+)/)[1] if @uri =~ /\/[^#\?]+/
+        if path
+          parts = @uri.match(%r{(/[^/]+?)(?:-([0-9]+))?/(.*)})
+          @name = parts[1]
+          @version = parts[2]
+          @path = parts[3]
+        end
+      when 'USK'
+        path = @uri.match(/(\/[^#\?]+)/)[1] if @uri =~ /\/[^#\?]+/
+        if path
+          parts = @uri.match(%r{(/[^/]+?)(?:[/-]([0-9]+))?/(.*)})
+          @name = parts[1]
+          @version = parts[2]
+          @path = parts[3]
+        end
+      end
       @anchor = @uri.match(/#(.+)/)[1] if @uri =~ /#.+/
       @query_string = @uri.match(/\?([^#]+)/)[1] if @uri =~ /\?/
     end
 
     # Return a URI that can be fed to Freenet
     def uri
-      "#{@type}@#{@site}#{@path}#{'/'+@version.to_s if @version}#{"?#{@query_string}" if @query_string}#{"##{@anchor}" if @anchor}"
+      case @type
+      when 'KSK','CHK'
+        "#{@type}@#{@site}#{@path}"
+      when 'USK'
+        "#{@type}@#{@site}#{@path}#{'/'+@version.to_s if @version}#{"?#{@query_string}" if @query_string}#{"##{@anchor}" if @anchor}"
+      when 'SSK'
+        "#{@type}@#{@site}#{@path}#{'-'+@version.to_s if @version}#{"?#{@query_string}" if @query_string}#{"##{@anchor}" if @anchor}"
+      end
     end
     
     # Merge in a URI or a URI fragment and provide the finished URI. Attempts
@@ -57,7 +83,7 @@ module Freenet
     
     # Returns true if we're at the 'base' page of a URI using the following:
     # - KSKs and CHKs only have one file, so always the base
-    # - SSKs have a 'base', eg SSK@.../mysite/
+    # - SSKs have a 'base', eg SSK@.../mysite-2/
     # - USKs start with /sitename and end with /revision or  -revision, though the latter
     #   is technically wrong.
     #

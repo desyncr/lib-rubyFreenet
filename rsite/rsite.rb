@@ -1,21 +1,67 @@
 $:.push('../')
 require 'freenet'
+require 'yaml'
 
 module Freenet
   class Site
-    attr_accessor :version, :client, :keys, :name
-    def self.load(file)
-      Marshal.load(IO.read(file))
+    STORE_PATH = File.expand_path("~/.rubyFreenetSites")
+    def self.add_site(site)
+      existing_sites = load_sites
+      site = site.to_hash if site.respond_to? :to_hash
+      existing_sites << site
+      save_sites(existing_sites)
     end
     
+    def self.save_sites(sites)
+      sites = sites.collect do |s|
+        if s.respond_to? :to_hash
+          s.to_hash 
+        else
+          s
+        end
+      end
+      File.open(STORE_PATH, 'w') do |f|
+        f.flock(File::LOCK_EX)
+        YAML.dump(sites, f)
+        f.flock(File::LOCK_UN)
+      end
+    end
+    
+    def self.load_sites
+      if File.exists? STORE_PATH
+        sites = []
+        File.open(STORE_PATH) do |f|
+          f.flock(File::LOCK_EX)
+          sites = YAML.load(f)
+          f.flock(File::LOCK_UN)
+        end
+        sites ||= []
+        sites.collect do |s|
+          site = Site.new(s[:type], s[:dir], s[:name])
+          site.keys = s[:keys] if s[:keys]
+          site.version = s[:version]
+          site.last_update = s[:last_update]
+          site
+        end
+      else
+        []
+      end
+    end
+    
+    attr_accessor :version, :client, :keys, :name, :last_update
+
     def initialize(type, path, name)
-      raise SiteError.new('Invalid type') unless ['USK','SSK','CHK','KSK'].include? type
+      raise SiteError.new("Invalid type: #{type}") unless ['USK','SSK','CHK','KSK'].include? type
       @path, @type, @name = path, type, name
       @version = ''
     end
     
     def connect
       @client = Freenet::FCP::Client.new()
+    end
+    
+    def disconnect
+      @client.disconnect
     end
     
     def generate_key
@@ -36,10 +82,11 @@ module Freenet
       @uri ||= Freenet::URI.new(@keys[0])
       @uri.type = @type
       @uri.path = "/#{@name}"
-      @uri.version ||= 0
+      @uri.version ||= @version
       @uri.version += 1
-      puts "Insert key: #{@uri.uri}\nRequest key: #{@uri.uri}"
-      @client.putdir(@uri, path)
+      @last_update = File.mtime(path)
+      uri = @client.putdir(@uri, path)
+      uri
     end
     
     # Insert a single file. You probably want a CHK for this, use it to insert
@@ -73,11 +120,13 @@ module Freenet
       end
     end
     
-    def save(file)
-      client = @client
-      @client = nil
-      File.open(file, 'w') {|f| f.write(Marshal.dump(self))}
-      @client = client
+    def to_hash
+      {:type=>@type,
+       :name=>@name,
+       :version=>@version,
+       :dir=>@path,
+       :keys=>@keys,
+       :last_update=>@last_update}
     end
   end
   

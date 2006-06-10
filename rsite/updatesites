@@ -1,0 +1,14 @@
+#!/usr/bin/ruby
+
+require 'rsite'
+require 'getoptlong'
+require 'rdoc/usage'
+
+sites = Freenet::Site.load_sites
+sites.each do |site|
+  site.connect
+  puts site.insert_site
+  site.disconnect
+end
+
+Freenet::Site.save_sites(sites)
