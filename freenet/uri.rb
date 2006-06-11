@@ -12,7 +12,8 @@ module Freenet
     #  SSK@...
     #
     # Currently supports SSK, USK, KSK and CHK
-    def initialize(uri)
+    def initialize(uri = nil)
+      return if uri.nil?
       uri = uri.respond_to?(:uri) ? uri.uri : uri.dup
       case uri
       when /^\/?freenet:/
@@ -31,7 +32,7 @@ module Freenet
       when 'SSK'
         path = @uri.match(/(\/[^#\?]+)/)[1] if @uri =~ /\/[^#\?]+/
         if path
-          parts = @uri.match(%r{(/[^/]+?)(?:-([0-9]+))?/(.*)})
+          parts = @uri.match(%r{(/[^/]+?)(?:-([0-9]+))?(/.*)})
           @name = parts[1]
           @version = parts[2]
           @path = parts[3]
@@ -39,7 +40,7 @@ module Freenet
       when 'USK'
         path = @uri.match(/(\/[^#\?]+)/)[1] if @uri =~ /\/[^#\?]+/
         if path
-          parts = @uri.match(%r{(/[^/]+?)(?:[/-]([0-9]+))?/(.*)})
+          parts = @uri.match(%r{(/[^/]+?)(?:[/-](-?[0-9]+))(/?.*)})
           @name = parts[1]
           @version = parts[2]
           @path = parts[3]
@@ -55,9 +56,9 @@ module Freenet
       when 'KSK','CHK'
         "#{@type}@#{@site}#{@path}"
       when 'USK'
-        "#{@type}@#{@site}#{@path}#{'/'+@version.to_s if @version}#{"?#{@query_string}" if @query_string}#{"##{@anchor}" if @anchor}"
+        "#{@type}@#{@site}#{@name}#{'/'+@version.to_s if @version}#{"?#{@query_string}" if @query_string}#{@path}#{"##{@anchor}" if @anchor}"
       when 'SSK'
-        "#{@type}@#{@site}#{@path}#{'-'+@version.to_s if @version}#{"?#{@query_string}" if @query_string}#{"##{@anchor}" if @anchor}"
+        "#{@type}@#{@site}#{@name}#{'-'+@version.to_s if @version}#{"?#{@query_string}" if @query_string}#{@path}#{"##{@anchor}" if @anchor}"
       end
     end
     
@@ -72,12 +73,18 @@ module Freenet
       begin
         uri = URI.new(uri) unless uri.respond_to? :uri
         if uri.site == @site
-          return "#{@type}#{@site}#{merge_paths(@path, uri.path)}"
+          return merge_uri(uri)
         else
           return uri.uri
         end
       rescue URIError => e # We have a fragment
-        "#{@type}#{@site}#{merge_paths(@path, uri)}"
+        case @type
+        when 'KSK','CHK' #No point merging paths for this type...
+        when 'USK'
+          "#{@type}@#{@site}#{@name}#{'/'+@version.to_s if @version}#{merge_paths(@path, uri)}"
+        when 'SSK'
+          "#{@type}@#{@site}#{@name}#{'-'+@version.to_s if @version}#{merge_paths(@path, uri)}"
+        end
       end
     end
     
@@ -108,6 +115,21 @@ module Freenet
     end
     
     private
+    
+    def merge_uri(uri)
+      return uri.uri if uri.type != @type or uri.site != @site
+      version = uri.version > @version ? uri.version : version
+      name = uri.name
+      path = merge_paths(@path, uri.path)
+      uri = URI.new
+      uri.type = @type
+      uri.site = @site
+      uri.version = version
+      uri.name = name
+      uri.path = path
+      uri.uri
+    end
+    
     def merge_paths(old_path, new_path)
       case new_path
       when /^\.\.\//

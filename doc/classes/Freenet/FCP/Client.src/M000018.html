@@ -5,15 +5,22 @@
 
 <html>
 <head>
-  <title>load_request (Freenet::FCP::Client)</title>
+  <title>new (Freenet::FCP::Client)</title>
   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
   <link rel="stylesheet" href="../../../.././rdoc-style.css" type="text/css" media="screen" />
 </head>
 <body class="standalone-code">
-  <pre><span class="ruby-comment cmt"># File freenet/fcp/client.rb, line 124</span>
-      <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">load_request</span>(<span class="ruby-identifier">message</span>)
-        <span class="ruby-identifier">message</span>.<span class="ruby-identifier">load_only</span> = <span class="ruby-keyword kw">true</span>
-        <span class="ruby-ivar">@message_queue</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">message</span>
+  <pre><span class="ruby-comment cmt"># File freenet/fcp/client.rb, line 84</span>
+      <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">client_name</span>=<span class="ruby-keyword kw">nil</span>, <span class="ruby-identifier">server</span>=<span class="ruby-value str">&quot;127.0.0.1&quot;</span>, <span class="ruby-identifier">port</span>=<span class="ruby-value">9481</span>, <span class="ruby-identifier">options</span>={})
+        <span class="ruby-ivar">@client_name</span> = <span class="ruby-identifier">client_name</span> <span class="ruby-operator">||</span> <span class="ruby-constant">MD5</span>.<span class="ruby-identifier">md5</span>(<span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>.<span class="ruby-identifier">to_s</span>)
+        <span class="ruby-ivar">@options</span>, <span class="ruby-ivar">@server</span>, <span class="ruby-ivar">@port</span> = <span class="ruby-identifier">options</span>, <span class="ruby-identifier">server</span>, <span class="ruby-identifier">port</span>
+        <span class="ruby-ivar">@messages</span> = {}
+        <span class="ruby-ivar">@running</span> = <span class="ruby-keyword kw">false</span>
+        <span class="ruby-ivar">@lock</span> = <span class="ruby-constant">Mutex</span>.<span class="ruby-identifier">new</span>
+        <span class="ruby-ivar">@logger</span> = <span class="ruby-constant">Logger</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value str">'FCPClientLog'</span>,<span class="ruby-value str">'daily'</span>)
+        <span class="ruby-ivar">@message_queue</span> = <span class="ruby-constant">Queue</span>.<span class="ruby-identifier">new</span>
+        <span class="ruby-identifier">connect</span>
+        <span class="ruby-identifier">hello</span>
       <span class="ruby-keyword kw">end</span></pre>
 </body>
 </html>

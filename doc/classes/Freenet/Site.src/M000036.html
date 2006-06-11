@@ -5,14 +5,16 @@
 
 <html>
 <head>
-  <title>save (Freenet::Site)</title>
+  <title>new (Freenet::Site)</title>
   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
   <link rel="stylesheet" href="../../.././rdoc-style.css" type="text/css" media="screen" />
 </head>
 <body class="standalone-code">
-  <pre><span class="ruby-comment cmt"># File rsite/rsite.rb, line 57</span>
-    <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">save</span>(<span class="ruby-identifier">file</span>)
-      <span class="ruby-constant">File</span>.<span class="ruby-identifier">open</span>(<span class="ruby-identifier">file</span>, <span class="ruby-value str">'w'</span>) {<span class="ruby-operator">|</span><span class="ruby-identifier">f</span><span class="ruby-operator">|</span> <span class="ruby-identifier">f</span>.<span class="ruby-identifier">write</span>(<span class="ruby-constant">Marshal</span>.<span class="ruby-identifier">dump</span>(<span class="ruby-keyword kw">self</span>))}
+  <pre><span class="ruby-comment cmt"># File rsite/rsite.rb, line 54</span>
+    <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">type</span>, <span class="ruby-identifier">path</span>, <span class="ruby-identifier">name</span>)
+      <span class="ruby-identifier">raise</span> <span class="ruby-constant">SiteError</span>.<span class="ruby-identifier">new</span>(<span class="ruby-node">&quot;Invalid type: #{type}&quot;</span>) <span class="ruby-keyword kw">unless</span> [<span class="ruby-value str">'USK'</span>,<span class="ruby-value str">'SSK'</span>,<span class="ruby-value str">'CHK'</span>,<span class="ruby-value str">'KSK'</span>].<span class="ruby-identifier">include?</span> <span class="ruby-identifier">type</span>
+      <span class="ruby-ivar">@path</span>, <span class="ruby-ivar">@type</span>, <span class="ruby-ivar">@name</span> = <span class="ruby-identifier">path</span>, <span class="ruby-identifier">type</span>, <span class="ruby-identifier">name</span>
+      <span class="ruby-ivar">@version</span> = <span class="ruby-value str">''</span>
     <span class="ruby-keyword kw">end</span></pre>
 </body>
 </html>

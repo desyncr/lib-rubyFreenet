@@ -33,6 +33,7 @@ module Freenet
         @callback = callback
         @mutex = Mutex.new
         @load_only = false
+        @this_thread = nil
       end
       
       # Lock the object. Call before using in async situations
@@ -43,11 +44,17 @@ module Freenet
       end
         
       # Unlock. Call after using asychronously
-      def unlock; @mutex.unlock; end
+      def unlock
+        @mutex.unlock
+      end
       
-      def locked?; @mutex.locked?; end
+      def locked?
+        @mutex.locked?
+      end
         
-      def try_lock; @mutex.try_lock; end
+      def try_lock
+        @mutex.try_lock
+      end
       
       # Dispatch the callback. Private to FCP::Client
       def callback(status)
@@ -55,23 +62,24 @@ module Freenet
       rescue => e
         puts "ERROR: Exception in callback: #{e}\n#{e.backtrace.join("\n")}"
       end
+      
+      def callback?
+        @callback.nil? == false
+      end
 
       # Sets the reply. This is private to FCP::Client
       def reply=(response)
         lock
         @response = response
         unlock
+        @this_thread.run if @this_thread
       end
 
       # Used to block until the reply is received for synchronous messages. May be
       # called from any thread.
       def wait_for_response
-        until @response
-          sleep(5)
-          next if locked?
-          lock
-          unlock
-        end
+        @this_thread = Thread.current
+        Thread.stop
       end
     end
   end

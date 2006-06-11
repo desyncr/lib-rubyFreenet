@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+  <title>request_status (Freenet::FCP::Client)</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <link rel="stylesheet" href="../../../.././rdoc-style.css" type="text/css" media="screen" />
+</head>
+<body class="standalone-code">
+  <pre><span class="ruby-comment cmt"># File freenet/fcp/client.rb, line 305</span>
+      <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">request_status</span>(<span class="ruby-identifier">identifier</span>, <span class="ruby-identifier">global</span>, <span class="ruby-identifier">async</span>=<span class="ruby-keyword kw">false</span>)
+        <span class="ruby-identifier">log</span>(<span class="ruby-constant">DEBUG</span>, <span class="ruby-value str">'Requesting status'</span>)
+        <span class="ruby-identifier">message</span> = <span class="ruby-constant">Message</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value str">'GetRequestStatus'</span>, <span class="ruby-keyword kw">nil</span>, <span class="ruby-value str">'Identifier'</span>=<span class="ruby-operator">&gt;</span><span class="ruby-identifier">identifier</span>, <span class="ruby-value str">'Global'</span>=<span class="ruby-operator">&gt;</span><span class="ruby-identifier">global</span>)
+        <span class="ruby-identifier">send</span>(<span class="ruby-identifier">message</span>, <span class="ruby-identifier">async</span>)
+        <span class="ruby-identifier">message</span>.<span class="ruby-identifier">wait_for_response</span>
+      <span class="ruby-keyword kw">end</span></pre>
+</body>
+</html>

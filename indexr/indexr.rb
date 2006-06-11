@@ -114,17 +114,18 @@ class IndexR
         else
           puts "Unknown content type: #{message.content_type} URI:#{uri.uri}"
         end
-      when :failed # If it failed then we ditch the URI
+      when :failed, :error # If it failed then we ditch the URI
         @pages_semaphore.synchronize do
           @waiting_urls.delete_if {|u| u == uri.uri}
         end
       when :redirect # In case of redirect we issue a new request for it.
-        @pages_semaphore.synchronize do
-          @waiting_urls.delete_if {|u| u == uri.uri}
-        end
+        puts "Got redirect to #{response.items['RedirectURI']}"
         @mutex.unlock
         mine_page(Freenet::URI.new(response.items['RedirectURI']), depth)
         @mutex.lock
+        @pages_semaphore.synchronize do
+          @waiting_urls.delete_if {|u| u == uri.uri}
+        end
       when :retrying
         puts "Got retry notification"
       when :pending

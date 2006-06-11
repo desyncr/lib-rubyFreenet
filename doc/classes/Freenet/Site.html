@@ -86,13 +86,17 @@
       <h3 class="section-bar">Methods</h3>
 
       <div class="name-list">
-      <a href="#M000032">connect</a>&nbsp;&nbsp;
-      <a href="#M000033">generate_key</a>&nbsp;&nbsp;
-      <a href="#M000035">insert_file</a>&nbsp;&nbsp;
-      <a href="#M000034">insert_site</a>&nbsp;&nbsp;
-      <a href="#M000030">load</a>&nbsp;&nbsp;
-      <a href="#M000031">new</a>&nbsp;&nbsp;
-      <a href="#M000036">save</a>&nbsp;&nbsp;
+      <a href="#M000033">add_site</a>&nbsp;&nbsp;
+      <a href="#M000037">connect</a>&nbsp;&nbsp;
+      <a href="#M000038">disconnect</a>&nbsp;&nbsp;
+      <a href="#M000039">generate_key</a>&nbsp;&nbsp;
+      <a href="#M000042">insert_file</a>&nbsp;&nbsp;
+      <a href="#M000041">insert_site</a>&nbsp;&nbsp;
+      <a href="#M000035">load_sites</a>&nbsp;&nbsp;
+      <a href="#M000036">new</a>&nbsp;&nbsp;
+      <a href="#M000040">process_site</a>&nbsp;&nbsp;
+      <a href="#M000034">save_sites</a>&nbsp;&nbsp;
+      <a href="#M000043">to_hash</a>&nbsp;&nbsp;
       </div>
     </div>
 
@@ -104,6 +108,19 @@
     <div id="section">
 
 
+    <div id="constants-list">
+      <h3 class="section-bar">Constants</h3>
+
+      <div class="name-list">
+        <table summary="Constants">
+        <tr class="top-aligned-row context-row">
+          <td class="context-item-name">STORE_PATH</td>
+          <td>=</td>
+          <td class="context-item-value">File.expand_path(&quot;~/.rubyFreenetSites&quot;)</td>
+        </tr>
+        </table>
+      </div>
+    </div>
 
 
 
@@ -113,8 +130,28 @@
       <div class="name-list">
         <table>
         <tr class="top-aligned-row context-row">
+          <td class="context-item-name">client</td>
+          <td class="context-item-value">&nbsp;[RW]&nbsp;</td>
+          <td class="context-item-desc"></td>
+        </tr>
+        <tr class="top-aligned-row context-row">
           <td class="context-item-name">keys</td>
+          <td class="context-item-value">&nbsp;[RW]&nbsp;</td>
+          <td class="context-item-desc"></td>
+        </tr>
+        <tr class="top-aligned-row context-row">
+          <td class="context-item-name">last_update</td>
+          <td class="context-item-value">&nbsp;[RW]&nbsp;</td>
+          <td class="context-item-desc"></td>
+        </tr>
+        <tr class="top-aligned-row context-row">
+          <td class="context-item-name">name</td>
           <td class="context-item-value">&nbsp;[R]&nbsp;</td>
+          <td class="context-item-desc"></td>
+        </tr>
+        <tr class="top-aligned-row context-row">
+          <td class="context-item-name">name</td>
+          <td class="context-item-value">&nbsp;[RW]&nbsp;</td>
           <td class="context-item-desc"></td>
         </tr>
         <tr class="top-aligned-row context-row">
@@ -132,57 +169,13 @@
     <div id="methods">
       <h3 class="section-bar">Public Class methods</h3>
 
-      <div id="method-M000030" class="method-detail">
-        <a name="M000030"></a>
-
-        <div class="method-heading">
-          <a href="Site.src/M000030.html" target="Code" class="method-signature"
-            onclick="popupCode('Site.src/M000030.html');return false;">
-          <span class="method-name">load</span><span class="method-args">(file)</span>
-          </a>
-        </div>
-      
-        <div class="method-description">
-        </div>
-      </div>
-
-      <div id="method-M000031" class="method-detail">
-        <a name="M000031"></a>
-
-        <div class="method-heading">
-          <a href="Site.src/M000031.html" target="Code" class="method-signature"
-            onclick="popupCode('Site.src/M000031.html');return false;">
-          <span class="method-name">new</span><span class="method-args">(type, path)</span>
-          </a>
-        </div>
-      
-        <div class="method-description">
-        </div>
-      </div>
-
-      <h3 class="section-bar">Public Instance methods</h3>
-
-      <div id="method-M000032" class="method-detail">
-        <a name="M000032"></a>
-
-        <div class="method-heading">
-          <a href="Site.src/M000032.html" target="Code" class="method-signature"
-            onclick="popupCode('Site.src/M000032.html');return false;">
-          <span class="method-name">connect</span><span class="method-args">()</span>
-          </a>
-        </div>
-      
-        <div class="method-description">
-        </div>
-      </div>
-
       <div id="method-M000033" class="method-detail">
         <a name="M000033"></a>
 
         <div class="method-heading">
           <a href="Site.src/M000033.html" target="Code" class="method-signature"
             onclick="popupCode('Site.src/M000033.html');return false;">
-          <span class="method-name">generate_key</span><span class="method-args">()</span>
+          <span class="method-name">add_site</span><span class="method-args">(site)</span>
           </a>
         </div>
       
@@ -196,6 +189,92 @@
         <div class="method-heading">
           <a href="Site.src/M000035.html" target="Code" class="method-signature"
             onclick="popupCode('Site.src/M000035.html');return false;">
+          <span class="method-name">load_sites</span><span class="method-args">()</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+        </div>
+      </div>
+
+      <div id="method-M000036" class="method-detail">
+        <a name="M000036"></a>
+
+        <div class="method-heading">
+          <a href="Site.src/M000036.html" target="Code" class="method-signature"
+            onclick="popupCode('Site.src/M000036.html');return false;">
+          <span class="method-name">new</span><span class="method-args">(type, path, name)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+        </div>
+      </div>
+
+      <div id="method-M000034" class="method-detail">
+        <a name="M000034"></a>
+
+        <div class="method-heading">
+          <a href="Site.src/M000034.html" target="Code" class="method-signature"
+            onclick="popupCode('Site.src/M000034.html');return false;">
+          <span class="method-name">save_sites</span><span class="method-args">(sites)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+        </div>
+      </div>
+
+      <h3 class="section-bar">Public Instance methods</h3>
+
+      <div id="method-M000037" class="method-detail">
+        <a name="M000037"></a>
+
+        <div class="method-heading">
+          <a href="Site.src/M000037.html" target="Code" class="method-signature"
+            onclick="popupCode('Site.src/M000037.html');return false;">
+          <span class="method-name">connect</span><span class="method-args">()</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+        </div>
+      </div>
+
+      <div id="method-M000038" class="method-detail">
+        <a name="M000038"></a>
+
+        <div class="method-heading">
+          <a href="Site.src/M000038.html" target="Code" class="method-signature"
+            onclick="popupCode('Site.src/M000038.html');return false;">
+          <span class="method-name">disconnect</span><span class="method-args">()</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+        </div>
+      </div>
+
+      <div id="method-M000039" class="method-detail">
+        <a name="M000039"></a>
+
+        <div class="method-heading">
+          <a href="Site.src/M000039.html" target="Code" class="method-signature"
+            onclick="popupCode('Site.src/M000039.html');return false;">
+          <span class="method-name">generate_key</span><span class="method-args">()</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+        </div>
+      </div>
+
+      <div id="method-M000042" class="method-detail">
+        <a name="M000042"></a>
+
+        <div class="method-heading">
+          <a href="Site.src/M000042.html" target="Code" class="method-signature"
+            onclick="popupCode('Site.src/M000042.html');return false;">
           <span class="method-name">insert_file</span><span class="method-args">(path, type = nil, site=nil)</span>
           </a>
         </div>
@@ -220,13 +299,30 @@ must be sitename/filename
         </div>
       </div>
 
-      <div id="method-M000034" class="method-detail">
-        <a name="M000034"></a>
+      <div id="method-M000041" class="method-detail">
+        <a name="M000041"></a>
 
         <div class="method-heading">
-          <a href="Site.src/M000034.html" target="Code" class="method-signature"
-            onclick="popupCode('Site.src/M000034.html');return false;">
-          <span class="method-name">insert_site</span><span class="method-args">()</span>
+          <a href="Site.src/M000041.html" target="Code" class="method-signature"
+            onclick="popupCode('Site.src/M000041.html');return false;">
+          <span class="method-name">insert_site</span><span class="method-args">(path = nil)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Insert a whole site from disk
+</p>
+        </div>
+      </div>
+
+      <div id="method-M000040" class="method-detail">
+        <a name="M000040"></a>
+
+        <div class="method-heading">
+          <a href="Site.src/M000040.html" target="Code" class="method-signature"
+            onclick="popupCode('Site.src/M000040.html');return false;">
+          <span class="method-name">process_site</span><span class="method-args">()</span>
           </a>
         </div>
       
@@ -234,13 +330,13 @@ must be sitename/filename
         </div>
       </div>
 
-      <div id="method-M000036" class="method-detail">
-        <a name="M000036"></a>
+      <div id="method-M000043" class="method-detail">
+        <a name="M000043"></a>
 
         <div class="method-heading">
-          <a href="Site.src/M000036.html" target="Code" class="method-signature"
-            onclick="popupCode('Site.src/M000036.html');return false;">
-          <span class="method-name">save</span><span class="method-args">(file)</span>
+          <a href="Site.src/M000043.html" target="Code" class="method-signature"
+            onclick="popupCode('Site.src/M000043.html');return false;">
+          <span class="method-name">to_hash</span><span class="method-args">()</span>
           </a>
         </div>
       

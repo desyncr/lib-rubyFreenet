@@ -5,21 +5,48 @@
 
 <html>
 <head>
-  <title>root? (Freenet::URI)</title>
+  <title>new (Freenet::URI)</title>
   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
   <link rel="stylesheet" href="../../.././rdoc-style.css" type="text/css" media="screen" />
 </head>
 <body class="standalone-code">
-  <pre><span class="ruby-comment cmt"># File freenet/uri.rb, line 64</span>
-    <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">root?</span>
-      <span class="ruby-keyword kw">case</span> <span class="ruby-ivar">@site</span>
-      <span class="ruby-keyword kw">when</span> <span class="ruby-regexp re">/^CHK/</span> <span class="ruby-keyword kw">then</span> <span class="ruby-keyword kw">true</span>
-      <span class="ruby-keyword kw">when</span> <span class="ruby-regexp re">/^KSK/</span> <span class="ruby-keyword kw">then</span> <span class="ruby-keyword kw">true</span>
-      <span class="ruby-keyword kw">when</span> <span class="ruby-regexp re">/^SSK/</span> <span class="ruby-keyword kw">then</span> <span class="ruby-ivar">@path</span> <span class="ruby-operator">==</span> <span class="ruby-regexp re">%r{/[^/]/}</span>
-      <span class="ruby-keyword kw">when</span> <span class="ruby-regexp re">/^USK/</span> <span class="ruby-keyword kw">then</span> <span class="ruby-ivar">@path</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">%r{/[^/-]+[/-][0-9]+}i</span>
-      <span class="ruby-keyword kw">else</span>
-        <span class="ruby-keyword kw">false</span> 
+  <pre><span class="ruby-comment cmt"># File freenet/uri.rb, line 15</span>
+    <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">uri</span> = <span class="ruby-keyword kw">nil</span>)
+      <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">nil?</span>
+      <span class="ruby-identifier">uri</span> = <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">respond_to?</span>(<span class="ruby-identifier">:uri</span>) <span class="ruby-operator">?</span> <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">uri</span> <span class="ruby-operator">:</span> <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">dup</span>
+      <span class="ruby-keyword kw">case</span> <span class="ruby-identifier">uri</span>
+      <span class="ruby-keyword kw">when</span> <span class="ruby-regexp re">/^\/?freenet:/</span>
+        <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">sub!</span>(<span class="ruby-regexp re">/^\/?freenet:/</span>,<span class="ruby-value str">''</span>)
+      <span class="ruby-keyword kw">when</span> <span class="ruby-regexp re">/^\//</span>
+        <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">sub!</span>(<span class="ruby-regexp re">/^\//</span>, <span class="ruby-value str">''</span>)
       <span class="ruby-keyword kw">end</span>
+      <span class="ruby-identifier">raise</span> <span class="ruby-constant">URIError</span>.<span class="ruby-identifier">new</span>(<span class="ruby-node">&quot;Invalid Freenet URI: #{uri}&quot;</span>) <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">uri</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/^(?:[UKS]S|CH)K@/</span>
+      
+      <span class="ruby-ivar">@uri</span> = <span class="ruby-identifier">uri</span>
+      <span class="ruby-ivar">@type</span> = <span class="ruby-ivar">@uri</span>.<span class="ruby-identifier">match</span>(<span class="ruby-regexp re">/^(?:[UKS]S|CH)K/</span>)[<span class="ruby-value">0</span>]
+      <span class="ruby-ivar">@site</span> = <span class="ruby-ivar">@uri</span>.<span class="ruby-identifier">match</span>(<span class="ruby-regexp re">/^(?:[UKS]S|CH)K@([^\/]+)/</span>)[<span class="ruby-value">1</span>]
+      <span class="ruby-keyword kw">case</span> <span class="ruby-ivar">@type</span>
+      <span class="ruby-keyword kw">when</span> <span class="ruby-value str">'KSK'</span>, <span class="ruby-value str">'CHK'</span>
+        <span class="ruby-ivar">@path</span> = <span class="ruby-ivar">@uri</span>.<span class="ruby-identifier">match</span>(<span class="ruby-regexp re">/(\/[^#\?]+)/</span>)[<span class="ruby-value">1</span>] <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@uri</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/\/[^#\?]+/</span>
+      <span class="ruby-keyword kw">when</span> <span class="ruby-value str">'SSK'</span>
+        <span class="ruby-identifier">path</span> = <span class="ruby-ivar">@uri</span>.<span class="ruby-identifier">match</span>(<span class="ruby-regexp re">/(\/[^#\?]+)/</span>)[<span class="ruby-value">1</span>] <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@uri</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/\/[^#\?]+/</span>
+        <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">path</span>
+          <span class="ruby-identifier">parts</span> = <span class="ruby-ivar">@uri</span>.<span class="ruby-identifier">match</span>(<span class="ruby-regexp re">%r{(/[^/]+?)(?:-([0-9]+))?(/.*)}</span>)
+          <span class="ruby-ivar">@name</span> = <span class="ruby-identifier">parts</span>[<span class="ruby-value">1</span>]
+          <span class="ruby-ivar">@version</span> = <span class="ruby-identifier">parts</span>[<span class="ruby-value">2</span>]
+          <span class="ruby-ivar">@path</span> = <span class="ruby-identifier">parts</span>[<span class="ruby-value">3</span>]
+        <span class="ruby-keyword kw">end</span>
+      <span class="ruby-keyword kw">when</span> <span class="ruby-value str">'USK'</span>
+        <span class="ruby-identifier">path</span> = <span class="ruby-ivar">@uri</span>.<span class="ruby-identifier">match</span>(<span class="ruby-regexp re">/(\/[^#\?]+)/</span>)[<span class="ruby-value">1</span>] <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@uri</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/\/[^#\?]+/</span>
+        <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">path</span>
+          <span class="ruby-identifier">parts</span> = <span class="ruby-ivar">@uri</span>.<span class="ruby-identifier">match</span>(<span class="ruby-regexp re">%r{(/[^/]+?)(?:[/-](-?[0-9]+))(/?.*)}</span>)
+          <span class="ruby-ivar">@name</span> = <span class="ruby-identifier">parts</span>[<span class="ruby-value">1</span>]
+          <span class="ruby-ivar">@version</span> = <span class="ruby-identifier">parts</span>[<span class="ruby-value">2</span>]
+          <span class="ruby-ivar">@path</span> = <span class="ruby-identifier">parts</span>[<span class="ruby-value">3</span>]
+        <span class="ruby-keyword kw">end</span>
+      <span class="ruby-keyword kw">end</span>
+      <span class="ruby-ivar">@anchor</span> = <span class="ruby-ivar">@uri</span>.<span class="ruby-identifier">match</span>(<span class="ruby-regexp re">/#(.+)/</span>)[<span class="ruby-value">1</span>] <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@uri</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/#.+/</span>
+      <span class="ruby-ivar">@query_string</span> = <span class="ruby-ivar">@uri</span>.<span class="ruby-identifier">match</span>(<span class="ruby-regexp re">/\?([^#]+)/</span>)[<span class="ruby-value">1</span>] <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@uri</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/\?/</span>
     <span class="ruby-keyword kw">end</span></pre>
 </body>
 </html>

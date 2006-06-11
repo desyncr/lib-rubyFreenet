@@ -5,28 +5,30 @@
 
 <html>
 <head>
-  <title>insert_file (Freenet::Site)</title>
+  <title>load_sites (Freenet::Site)</title>
   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
   <link rel="stylesheet" href="../../.././rdoc-style.css" type="text/css" media="screen" />
 </head>
 <body class="standalone-code">
-  <pre><span class="ruby-comment cmt"># File rsite/rsite.rb, line 38</span>
-    <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">insert_file</span>(<span class="ruby-identifier">path</span>, <span class="ruby-identifier">type</span> = <span class="ruby-keyword kw">nil</span>, <span class="ruby-identifier">site</span>=<span class="ruby-keyword kw">nil</span>)
-      <span class="ruby-identifier">uri</span> = <span class="ruby-value str">''</span>
-      <span class="ruby-identifier">type</span> <span class="ruby-operator">||=</span> <span class="ruby-ivar">@type</span>
-      <span class="ruby-keyword kw">case</span> <span class="ruby-identifier">type</span>
-      <span class="ruby-keyword kw">when</span> <span class="ruby-value str">'CHK'</span> <span class="ruby-keyword kw">then</span> <span class="ruby-identifier">uri</span> = <span class="ruby-value str">'CHK@'</span>
+  <pre><span class="ruby-comment cmt"># File rsite/rsite.rb, line 31</span>
+    <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">load_sites</span>
+      <span class="ruby-keyword kw">if</span> <span class="ruby-constant">File</span>.<span class="ruby-identifier">exists?</span> <span class="ruby-constant">STORE_PATH</span>
+        <span class="ruby-identifier">sites</span> = []
+        <span class="ruby-constant">File</span>.<span class="ruby-identifier">open</span>(<span class="ruby-constant">STORE_PATH</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">f</span><span class="ruby-operator">|</span>
+          <span class="ruby-identifier">f</span>.<span class="ruby-identifier">flock</span>(<span class="ruby-constant">File</span><span class="ruby-operator">::</span><span class="ruby-constant">LOCK_EX</span>)
+          <span class="ruby-identifier">sites</span> = <span class="ruby-constant">YAML</span>.<span class="ruby-identifier">load</span>(<span class="ruby-identifier">f</span>)
+          <span class="ruby-identifier">f</span>.<span class="ruby-identifier">flock</span>(<span class="ruby-constant">File</span><span class="ruby-operator">::</span><span class="ruby-constant">LOCK_UN</span>)
+        <span class="ruby-keyword kw">end</span>
+        <span class="ruby-identifier">sites</span> <span class="ruby-operator">||=</span> []
+        <span class="ruby-identifier">sites</span>.<span class="ruby-identifier">collect</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">s</span><span class="ruby-operator">|</span>
+          <span class="ruby-identifier">site</span> = <span class="ruby-constant">Site</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">s</span>[<span class="ruby-identifier">:type</span>], <span class="ruby-identifier">s</span>[<span class="ruby-identifier">:dir</span>], <span class="ruby-identifier">s</span>[<span class="ruby-identifier">:name</span>])
+          <span class="ruby-identifier">site</span>.<span class="ruby-identifier">keys</span> = <span class="ruby-identifier">s</span>[<span class="ruby-identifier">:keys</span>] <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">s</span>[<span class="ruby-identifier">:keys</span>]
+          <span class="ruby-identifier">site</span>.<span class="ruby-identifier">version</span> = <span class="ruby-identifier">s</span>[<span class="ruby-identifier">:version</span>]
+          <span class="ruby-identifier">site</span>.<span class="ruby-identifier">last_update</span> = <span class="ruby-identifier">s</span>[<span class="ruby-identifier">:last_update</span>]
+          <span class="ruby-identifier">site</span>
+        <span class="ruby-keyword kw">end</span>
       <span class="ruby-keyword kw">else</span>
-        <span class="ruby-identifier">raise</span> <span class="ruby-constant">SiteError</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value str">'Invalid key'</span>) <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">site</span>
-        <span class="ruby-identifier">uri</span> = <span class="ruby-node">&quot;#{@type}@#{site}&quot;</span>
-      <span class="ruby-keyword kw">end</span>
-      <span class="ruby-ivar">@client</span>.<span class="ruby-identifier">put</span>(<span class="ruby-identifier">uri</span>, <span class="ruby-keyword kw">nil</span>, <span class="ruby-keyword kw">true</span>, <span class="ruby-value str">'UploadFrom'</span>=<span class="ruby-operator">&gt;</span><span class="ruby-value str">'disk'</span>,<span class="ruby-value str">'Filename'</span>=<span class="ruby-operator">&gt;</span><span class="ruby-identifier">path</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">status</span>, <span class="ruby-identifier">message</span>, <span class="ruby-identifier">response</span><span class="ruby-operator">|</span>
-      <span class="ruby-keyword kw">when</span> <span class="ruby-identifier">:uri_generated</span>
-        <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;URI created: #{response.items['URI']}&quot;</span>
-      <span class="ruby-keyword kw">when</span> <span class="ruby-identifier">:success</span>
-        <span class="ruby-identifier">puts</span> <span class="ruby-value str">&quot;File inserted successfully&quot;</span>
-      <span class="ruby-keyword kw">when</span> <span class="ruby-identifier">:failed</span>
-        <span class="ruby-identifier">puts</span> <span class="ruby-value str">&quot;File insertion failed!&quot;</span>
+        []
       <span class="ruby-keyword kw">end</span>
     <span class="ruby-keyword kw">end</span></pre>
 </body>

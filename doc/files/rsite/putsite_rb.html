@@ -5,10 +5,10 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-  <title>File: exceptions.rb</title>
+  <title>File: putsite.rb</title>
   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
   <meta http-equiv="Content-Script-Type" content="text/javascript" />
-  <link rel="stylesheet" href="../../.././rdoc-style.css" type="text/css" media="screen" />
+  <link rel="stylesheet" href="../.././rdoc-style.css" type="text/css" media="screen" />
   <script type="text/javascript">
   // <![CDATA[
 
@@ -47,16 +47,16 @@
 
 
   <div id="fileHeader">
-    <h1>exceptions.rb</h1>
+    <h1>putsite.rb</h1>
     <table class="header-table">
     <tr class="top-aligned-row">
       <td><strong>Path:</strong></td>
-      <td>freenet/fcp/exceptions.rb
+      <td>rsite/putsite.rb
       </td>
     </tr>
     <tr class="top-aligned-row">
       <td><strong>Last Update:</strong></td>
-      <td>Thu Jun 08 22:11:45 NZST 2006</td>
+      <td>Fri Jun 09 23:19:36 NZST 2006</td>
     </tr>
     </table>
   </div>
@@ -68,7 +68,47 @@
 
   <div id="contextContent">
 
+    <div id="description">
+      <h2>Description</h2>
+<p>
+Basic wrapper for rsite to put in a new or update an existing freesite from
+a directory on the same server as the node.
+</p>
+<h2>Usage</h2>
+<p>
+putsite.rb [OPTIONS] &#8230; DIR
+</p>
+<p>
+-h, &#8212;help:
+</p>
+<pre>
+    This message
+</pre>
+<p>
+-n, &#8212;name:
+</p>
+<pre>
+    The site name and the file to save the rsite info to. If this is found
+    in ./ then the details will be loaded from it and the site updated
+</pre>
+<p>
+-t, &#8212;type:
+</p>
+<pre>
+    The type of site, either USK or SSK
+</pre>
 
+    </div>
+
+    <div id="requires-list">
+      <h3 class="section-bar">Required files</h3>
+
+      <div class="name-list">
+      rsite&nbsp;&nbsp;
+      getoptlong&nbsp;&nbsp;
+      rdoc/usage&nbsp;&nbsp;
+      </div>
+    </div>
 
    </div>
 

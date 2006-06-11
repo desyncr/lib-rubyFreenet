@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="../.././rdoc-style.css" type="text/css" media="screen" />
 </head>
 <body class="standalone-code">
-  <pre><span class="ruby-comment cmt"># File indexr/indexer.rb, line 74</span>
+  <pre><span class="ruby-comment cmt"># File indexr/indexr.rb, line 74</span>
   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">mine_page</span>(<span class="ruby-identifier">uri</span>, <span class="ruby-identifier">depth</span>=<span class="ruby-value">0</span>)
     <span class="ruby-comment cmt"># Filter out pages we don't want (images, binaries)</span>
     <span class="ruby-keyword kw">case</span> <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">path</span>
@@ -54,17 +54,18 @@
         <span class="ruby-keyword kw">else</span>
           <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;Unknown content type: #{message.content_type} URI:#{uri.uri}&quot;</span>
         <span class="ruby-keyword kw">end</span>
-      <span class="ruby-keyword kw">when</span> <span class="ruby-identifier">:failed</span> <span class="ruby-comment cmt"># If it failed then we ditch the URI</span>
+      <span class="ruby-keyword kw">when</span> <span class="ruby-identifier">:failed</span>, <span class="ruby-identifier">:error</span> <span class="ruby-comment cmt"># If it failed then we ditch the URI</span>
         <span class="ruby-ivar">@pages_semaphore</span>.<span class="ruby-identifier">synchronize</span> <span class="ruby-keyword kw">do</span>
           <span class="ruby-ivar">@waiting_urls</span>.<span class="ruby-identifier">delete_if</span> {<span class="ruby-operator">|</span><span class="ruby-identifier">u</span><span class="ruby-operator">|</span> <span class="ruby-identifier">u</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">uri</span>}
         <span class="ruby-keyword kw">end</span>
       <span class="ruby-keyword kw">when</span> <span class="ruby-identifier">:redirect</span> <span class="ruby-comment cmt"># In case of redirect we issue a new request for it.</span>
-        <span class="ruby-ivar">@pages_semaphore</span>.<span class="ruby-identifier">synchronize</span> <span class="ruby-keyword kw">do</span>
-          <span class="ruby-ivar">@waiting_urls</span>.<span class="ruby-identifier">delete_if</span> {<span class="ruby-operator">|</span><span class="ruby-identifier">u</span><span class="ruby-operator">|</span> <span class="ruby-identifier">u</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">uri</span>}
-        <span class="ruby-keyword kw">end</span>
+        <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;Got redirect to #{response.items['RedirectURI']}&quot;</span>
         <span class="ruby-ivar">@mutex</span>.<span class="ruby-identifier">unlock</span>
         <span class="ruby-identifier">mine_page</span>(<span class="ruby-constant">Freenet</span><span class="ruby-operator">::</span><span class="ruby-constant">URI</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">response</span>.<span class="ruby-identifier">items</span>[<span class="ruby-value str">'RedirectURI'</span>]), <span class="ruby-identifier">depth</span>)
         <span class="ruby-ivar">@mutex</span>.<span class="ruby-identifier">lock</span>
+        <span class="ruby-ivar">@pages_semaphore</span>.<span class="ruby-identifier">synchronize</span> <span class="ruby-keyword kw">do</span>
+          <span class="ruby-ivar">@waiting_urls</span>.<span class="ruby-identifier">delete_if</span> {<span class="ruby-operator">|</span><span class="ruby-identifier">u</span><span class="ruby-operator">|</span> <span class="ruby-identifier">u</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">uri</span>}
+        <span class="ruby-keyword kw">end</span>
       <span class="ruby-keyword kw">when</span> <span class="ruby-identifier">:retrying</span>
         <span class="ruby-identifier">puts</span> <span class="ruby-value str">&quot;Got retry notification&quot;</span>
       <span class="ruby-keyword kw">when</span> <span class="ruby-identifier">:pending</span>

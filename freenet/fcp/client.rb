@@ -190,14 +190,19 @@ module Freenet
         else
           loop do
             message.wait_for_response
+            puts "Got response: #{message.response.type}"
             message.lock
             case message.response.type
             when 'AllData'
               message.unlock
               return message.response
-            when 'GetFailed','ProtocolError'
+            when 'GetFailed','ProtocolError'  
               message.unlock
-              raise RequestFailed.new(message.response)
+              if message.response.items['Code'] == '27'
+                get(message.response.items['RedirectURI'], true, options)
+              else
+                raise RequestFailed.new(message.response)
+              end
             else
               message.unlock
             end
@@ -348,13 +353,6 @@ module Freenet
             end
           end
           
-          @messages.each do |k, m|
-            begin
-              m.try_lock
-            rescue
-            end
-           end
-          
           # I'm assuming that setting @running is atomic. There shouldn't be a race
           # condition here as this thread will never set @running.
           if @running == false
@@ -388,62 +386,63 @@ module Freenet
         if message.identifier
           original_message = @messages[message.identifier]
           if original_message
-            original_message.unlock
             original_message.reply = message
-            thread = Thread.new do
-              original_message.lock
-              message.lock
-              case message.type
-              when 'SSKKeypair'
-                original_message.callback(:keypair)
-              when 'AllData'
-                original_message.callback(:finished)
-              when 'PersistentGet'
-                original_message.callback(:pending)
-              when 'SimpleProgress'
-                original_message.callback(:progress)
-              when 'ProtocolError'
-                original_message.callback(:failed)
-              when 'URIGenerated'
-                original_message.callback(:uri_generated)
-              when 'PutSuccessful'
-                original_message.callback(:success)
-              when 'PutFailed'
-                original_message.callback(:failed)
-              when 'ProtocolError'
-                original_message.callback(:error)
-              when 'DataFound'
-                original_message.callback(:found)
-                original_message.content_type = message.items['Metadata.ContentType']
-                if original_message.items['Persistence'] != 'connection' and not original_message.data_found
-                  original_message.data_found = true
-                  request_status(message.identifier, message.items['Global'] || false, true)
-                end
-              when 'GetFailed'
-                if message.items['RedirectURI']
-                  original_message.callback(:redirect)
-                elsif message.items['Fatal'] == 'false'
-                  case message.items['Code']
-                  when '15' # Node overloaded. Wait then re-request. We can re-use the ID as GetFailed removes the ID from FRED
-                    if original_message.retries < 5
-                      original_message.retries += 1
-                      original_message.callback(:retrying)
-                      log(DEBUG, "Retrying #{original_message.items['URI']}")
-                      get(original_message.items['URI'], true, original_message.items)
+            if original_message.callback?
+              thread = Thread.new do
+                original_message.lock
+                message.lock
+                case message.type
+                when 'SSKKeypair'
+                  original_message.callback(:keypair)
+                when 'AllData'
+                  original_message.callback(:finished)
+                when 'PersistentGet'
+                  original_message.callback(:pending)
+                when 'SimpleProgress'
+                  original_message.callback(:progress)
+                when 'ProtocolError'
+                  original_message.callback(:failed)
+                when 'URIGenerated'
+                  original_message.callback(:uri_generated)
+                when 'PutSuccessful'
+                  original_message.callback(:success)
+                when 'PutFailed'
+                  original_message.callback(:failed)
+                when 'ProtocolError'
+                  original_message.callback(:error)
+                when 'DataFound'
+                  original_message.callback(:found)
+                  original_message.content_type = message.items['Metadata.ContentType']
+                  if original_message.items['Persistence'] != 'connection' and not original_message.data_found
+                    original_message.data_found = true
+                    request_status(message.identifier, message.items['Global'] || false, true)
+                  end
+                when 'GetFailed'
+                  if message.items['RedirectURI']
+                    original_message.callback(:redirect)
+                  elsif message.items['Fatal'] == 'false'
+                    case message.items['Code']
+                    when '15' # Node overloaded. Wait then re-request. We can re-use the ID as GetFailed removes the ID from FRED
+                      if original_message.retries < 5
+                        original_message.retries += 1
+                        original_message.callback(:retrying)
+                        log(DEBUG, "Retrying #{original_message.items['URI']}")
+                        get(original_message.items['URI'], true, original_message.items)
+                      else
+                        original_message.callback(:failed)
+                      end
                     else
                       original_message.callback(:failed)
                     end
                   else
                     original_message.callback(:failed)
                   end
-                else
-                  original_message.callback(:failed)
                 end
+                message.unlock
+                original_message.unlock
               end
-              message.unlock
-              original_message.unlock
+              @callback_threads << thread
             end
-            @callback_threads << thread
           else
             log(WARN, 'Got a message for an unknown identifier. Did you forget to reload persistent requests?')
           end
@@ -463,7 +462,6 @@ module Freenet
         raise FCPConnectionError.new('Socket does not exist') unless @socket
         log(DEBUG, "Sending #{message.type} #{message.identifier}")
         @messages[message.identifier] ||= message
-        message.lock
         unless message.load_only
           log(DEBUG, "W: #{message.type}")
           @socket.write(message.type+"\n")
