@@ -1,3 +1,5 @@
+require 'cgi'
+
 module Freenet
   # Represents a Freenet URI. Provides manipulation with awareness of the Freenet structure, such
   # as USK versioning.
@@ -15,6 +17,7 @@ module Freenet
     def initialize(uri = nil)
       return if uri.nil?
       uri = uri.respond_to?(:uri) ? uri.uri : uri.dup
+      uri = CGI::unescape(uri)
       case uri
       when /^\/?freenet:/
         uri.sub!(/^\/?freenet:/,'')
@@ -78,6 +81,13 @@ module Freenet
           return uri.uri
         end
       rescue URIError => e # We have a fragment
+        if uri =~ /([^#\?]+)/
+          uri = uri.match(/([^#\?]+)/)[1] 
+        else
+          raise URIError.new
+        end
+        raise URIError.new if uri =~ /[^\/]+:/
+        
         case @type
         when 'KSK','CHK' #No point merging paths for this type...
         when 'USK'
@@ -148,6 +158,9 @@ module Freenet
       when /^\//
         return new_path
       else
+        unless old_path =~ /\/$/
+          old_path = old_path.gsub(/\/[^\/]+$/, '/')
+        end
         return "#{old_path}#{new_path}"
       end
     end

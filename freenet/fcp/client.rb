@@ -176,7 +176,7 @@ module Freenet
         async = true if callback
         options = {'IgnoreDS'=>false,
                    'DSOnly'=>false,
-                   'Verbosity'=>1,
+                   'Verbosity'=>0,
                    'ReturnType'=>'direct',
                    'PriorityClass'=>1,
                    'Persistence'=>'reboot',
@@ -184,6 +184,7 @@ module Freenet
         options['Persistence'] = 'connection' unless async
         options['URI'] = uri
         message = Message.new('ClientGet', nil, options, callback)
+        log(INFO, "#{message.identifier} GET queued")
         send(message, async)
         if async
           message
@@ -235,7 +236,7 @@ module Freenet
         uri = uri.uri if uri.respond_to? :uri
         async = true if callback
         options = {'Metadata.ContentType' => 'application/octet-stream',
-                   'Verbosity' => 1,
+                   'Verbosity' => 0,
                    'MaxRetries' => 10,
                    'Persistence' => 'reboot',
                    'UploadFrom' => 'direct'}.merge(options || {})
@@ -243,6 +244,7 @@ module Freenet
         options['URI'] = uri
         message = Message.new('ClientPut', data, options, callback)
         message.content-type = options['Metadata.ContentType']
+        log(INFO, "#{message.identifier} PUT queued")
         send(message, async)
         if async
           message
@@ -269,7 +271,7 @@ module Freenet
       def putdir(uri, dir, async=false, options=nil, &callback)
         uri = uri.uri if uri.respond_to? :uri
         async = true if callback
-        options = {'Verbosity' => 1,
+        options = {'Verbosity' => 0,
                    'MaxRetries' => 10,
                    'PriorityClass' => 3,
                    'DefaultName' => 'index.html',
@@ -278,6 +280,7 @@ module Freenet
         options['Persistence'] = 'connection' unless async
         options['URI'] = uri
         message = Message.new('ClientPutDiskDir', nil, options, callback)
+        log(INFO, "#{message.identifier} PUTDIR queued")
         send(message, async)
         if async
           message
@@ -332,7 +335,6 @@ module Freenet
       #           it may block if it's in use.
       # param asynchronous Whether the reader should block until a response is received
       def send(message, asynchronous = false)
-        log(DEBUG, "Queuing #{message.type} - #{message.identifier}")
         @message_queue << message
         message
       end
@@ -348,8 +350,10 @@ module Freenet
               @callback_threads.delete(thread) if thread.join(0.1)
             rescue RequestFinished=>e
               @messages.delete(e.message)
+              @callback_threads.delete(thread)
             rescue Exception=>e
               puts "Callback exception #{e}"
+              @callback_threads.delete(thread)
             end
           end
           
@@ -371,6 +375,16 @@ module Freenet
             message = read_message
             dispatch_message(message)
           end
+          
+          @messages.each do |id, message|
+            if message.timeout and Time.now > (message.added + message.timeout)
+              thread = Thread.new do
+                message.callback(:timeout)
+                raise RequestFinished.new(message.identifier)
+              end
+              @callback_threads << thread
+            end
+          end
         end
       rescue Exception => e
         log(FATAL, "Exception in socket thread: #{e.class}: #{e.message}")
@@ -382,8 +396,8 @@ module Freenet
       # Dispatch a message received from the server. Sets the reply on the original message and then
       # calls any callback. See above for notes on callbacks.
       def dispatch_message(message)
-        log(DEBUG, "Dispatching #{message.type} - #{message.identifier}")
         if message.identifier
+          log(INFO, "#{message.identifier}: recieved #{message.type}")
           original_message = @messages[message.identifier]
           if original_message
             original_message.reply = message
@@ -460,26 +474,19 @@ module Freenet
       # raises FCPConnectionError if socket isn't connected
       def send_message(message)
         raise FCPConnectionError.new('Socket does not exist') unless @socket
-        log(DEBUG, "Sending #{message.type} #{message.identifier}")
         @messages[message.identifier] ||= message
         unless message.load_only
-          log(DEBUG, "W: #{message.type}")
           @socket.write(message.type+"\n")
           message.items.each do |key, value|
-            log(DEBUG, "W: #{key}=#{value}")
             @socket.write("#{key}=#{value}\n")
           end
 
           if message.data
             @socket.write("DataLength=#{message.data.length}\n")
-            log(DEBUG, "W: DataLength=#{message.data.length}")
             @socket.write("Data\n")
-            log(DEBUG, "W: Data")
             @socket.write(message.data)
-            log(DEBUG, "W: #{message.data}")
           else
             @socket.write("EndMessage\n")
-            log(DEBUG, "W: EndMessage")
           end
           @socket.write("\n")
         end
@@ -496,7 +503,6 @@ module Freenet
         data = nil
         loop do
           line = @socket.readline.strip
-          log(DEBUG, "R: #{line}")
           case line
           when "End","EndMessage"
             break
@@ -504,7 +510,6 @@ module Freenet
             key, value = line.split('=', 2)
             items[key] = value
           when "Data"
-            log(DEBUG, "Reading #{items['DataLength']} bytes")
             data = @socket.read(items['DataLength'].to_i)
             break
           else

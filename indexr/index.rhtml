@@ -51,11 +51,16 @@
 		<h1>Indexr: <%=Time.now.strftime("%d/%m/%Y")%></h1>
 		<h2>Pages</h2>
 		<div id="contents">
-			<% category = ''%>
+			<% category = ''
+			site = ''%>
 			<% @sorted_pages.each do |page| -%>
 				<% if category != page.category -%>
 				<h3><%= page.category.to_s %></h3>
 				<% category = page.category %>
+				<% end %>
+				<% if site != page.uri.site %>
+				<h4><%= page.uri.site %></h4>
+				<% site = page.uri.site%>
 				<% end %>
 				<div class="page">
 				<a href="/<%=page.uri.uri%>"><%=page.title%></a> <%=page.uri.path%> Rank: <%=((page.rank*100).ceil).to_f/100%><br />

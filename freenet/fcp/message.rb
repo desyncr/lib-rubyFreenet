@@ -14,7 +14,7 @@ module Freenet
     # [retries] 
     class Message
       attr_reader :type, :data, :items, :identifier
-      attr_accessor :callback, :load_only, :response, :data_found, :content_type, :retries
+      attr_accessor :callback, :load_only, :response, :data_found, :content_type, :retries, :timeout, :added
 
       # [type] The FCP message type
       # [data] Any data to send with the message
@@ -30,10 +30,17 @@ module Freenet
           @identifier = 'ClientHello' 
           @items.delete('Identifier')
         end
+        
+        if @items['Timeout']
+          @timeout = @items['Timeout']
+          @items.delete('Timeout')
+        end
+        
         @callback = callback
         @mutex = Mutex.new
         @load_only = false
         @this_thread = nil
+        @added = Time.now
       end
       
       # Lock the object. Call before using in async situations
