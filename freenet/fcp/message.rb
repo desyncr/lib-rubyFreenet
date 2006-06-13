@@ -11,14 +11,15 @@ module Freenet
     # [load_only] Only load in to the message queue, don't actually send. Used when restoring persistent
     #             requests if a client dies
     # [content_type] The content type of the data. Set automatically on response, set manually when inserting.
-    # [retries] 
+    # [retries] The number of retries that have happened in case of DataNotFound. The hard limit is five at the moment.
     class Message
       attr_reader :type, :data, :items, :identifier
       attr_accessor :callback, :load_only, :response, :data_found, :content_type, :retries, :timeout, :added
 
       # [type] The FCP message type
       # [data] Any data to send with the message
-      # [items] A hash of message parameters
+      # [items] A hash of message parameters. They vary for different messages, Timeout is a special
+      #         item that sets the timeout in seconds for this message, it doesn't go to the node.
       # [callback] Callback for asynchronous messages
       def initialize(type, data = nil, items = [], callback = nil)
         @retries = 0
@@ -87,6 +88,47 @@ module Freenet
       def wait_for_response
         @this_thread = Thread.current
         Thread.stop
+      end
+      
+      # Write this object to an FCP stream.
+      def write(stream)
+        stream.write(type+"\n")
+        items.each do |key, value|
+          stream.write("#{key}=#{value}\n")
+        end
+
+        if data
+          stream.write("DataLength=#{data.length}\n")
+          stream.write("Data\n")
+          stream.write(data)
+        else
+          stream.write("EndMessage\n")
+        end
+        stream.flush
+      end
+      
+      # Read from stream and create a new message object
+      def self.read(stream)
+        items = {}
+        type = nil
+        data = nil
+        loop do
+          line = stream.readline.strip
+          case line
+          when "End","EndMessage"
+            break
+          when /=/
+            key, value = line.split('=', 2)
+            items[key] = value
+          when "Data"
+            data = stream.read(items['DataLength'].to_i)
+            break
+          else
+            type = line if type == nil
+          end
+        end
+        puts "Read #{type}"
+        return Message.new(type, data, items)
       end
     end
   end

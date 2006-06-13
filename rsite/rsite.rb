@@ -82,11 +82,11 @@ module Freenet
       generate_key unless @keys
       @uri ||= Freenet::URI.new(@keys[0])
       @uri.type = @type
-      @uri.path = "/#{@name}"
+      @uri.name = "/#{@name}"
       @uri.version ||= @version
       @uri.version += 1
       @last_update = File.mtime(path)
-      uri = @client.putdir(@uri, path)
+      uri = @client.putdir(@uri, path, false, 'Verbosity'=>'1')
       uri
     end
     

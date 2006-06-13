@@ -295,6 +295,9 @@ module Freenet
             when 'PutFailed','ProtocolError'
               message.unlock
               raise RequestFailed.new(message.response)
+            when 'SimpleProgress'
+              puts "T:#{message.response.items['Total']}/R:#{message.response.items['Required']}/F:#{message.response.items['Failed']}/FF:#{message.response.items['FatallyFailed']}/S:#{message.response.items['Succeeded']}/#{message.response.items['FinalizedTotal']}"
+              message.unlock
             else
               message.unlock
             end
@@ -363,11 +366,12 @@ module Freenet
             @socket.close
             Thread.exit
           end
+          
           begin
             while message = @message_queue.pop(true)
               send_message(message)
             end
-          rescue ThreadError => e
+          rescue ThreadError => e # If the queue is empty.
           end
           
           # Wait two seconds for communication, shouldn't slow down too much and should save CPU.
@@ -476,19 +480,7 @@ module Freenet
         raise FCPConnectionError.new('Socket does not exist') unless @socket
         @messages[message.identifier] ||= message
         unless message.load_only
-          @socket.write(message.type+"\n")
-          message.items.each do |key, value|
-            @socket.write("#{key}=#{value}\n")
-          end
-
-          if message.data
-            @socket.write("DataLength=#{message.data.length}\n")
-            @socket.write("Data\n")
-            @socket.write(message.data)
-          else
-            @socket.write("EndMessage\n")
-          end
-          @socket.write("\n")
+          message.write(@socket)
         end
       end
 
@@ -498,25 +490,7 @@ module Freenet
       # raises FCPConnectionError if socket isn't connected
       def read_message
         raise FCPConnectionError.new('Socket does not exist') unless @socket
-        items = {}
-        type = nil
-        data = nil
-        loop do
-          line = @socket.readline.strip
-          case line
-          when "End","EndMessage"
-            break
-          when /=/
-            key, value = line.split('=', 2)
-            items[key] = value
-          when "Data"
-            data = @socket.read(items['DataLength'].to_i)
-            break
-          else
-            type = line if type == nil
-          end
-        end
-        return Message.new(type, data, items)
+        return Message.read(@socket)
       end
     end
   end
