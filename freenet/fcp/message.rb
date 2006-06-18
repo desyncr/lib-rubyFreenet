@@ -96,55 +96,39 @@ module Freenet
       #             This could be handled internally, I haven't decided yet.
       # [:failed] The request has fatally failed
       # [:error] An error in the FCP messages occured. This is caused by a bug in rubyFreenet
-      def status(message)
-        case message.type
-        when 'SSKKeypair'
-          original_message.callback(:keypair)
-        when 'AllData'
-          original_message.callback(:finished)
-        when 'PersistentGet'
-          original_message.callback(:pending)
-        when 'SimpleProgress'
-          original_message.callback(:progress)
-        when 'ProtocolError'
-          original_message.callback(:failed)
-        when 'URIGenerated'
-          original_message.callback(:uri_generated)
-        when 'PutSuccessful'
-          original_message.callback(:finished)
-        when 'PutFailed'
-          original_message.callback(:failed)
-        when 'ProtocolError'
-          original_message.callback(:error)
-        when 'DataFound'
-          original_message.callback(:found)
+      def status
+        case @type
+        when 'SSKKeypair': :keypair
+        when 'AllData': :finished
+        when 'PersistentGet': :pending
+        when 'SimpleProgress': :progress
+        when 'ProtocolError': :failed
+        when 'URIGenerated': :uri_generated
+        when 'PutSuccessful': :finished
+        when 'PutFailed': :failed
+        when 'ProtocolError': :error
+        when 'DataFound': :found
         when 'GetFailed'
-          if message.items['RedirectURI']
-            original_message.callback(:redirect)
+          if message.items['RedirectURI']: :redirect
           elsif message.items['Fatal'] == 'false'
             case message.items['Code']
             when '15' # Node overloaded. Wait then re-request. We can re-use the ID as GetFailed removes the ID from FRED
-              if original_message.retries < 5
-                original_message.callback(:retrying)
-              else
-                original_message.callback(:failed)
+              if original_message.retries < 5: :retrying
+              else :failed
               end
-            else
-              original_message.callback(:failed)
+            else :failed
             end
-          else
-            original_message.callback(:failed)
+          else :failed
           end
         end
       end
       
       # Write this object to an FCP stream.
       def write(stream)
-        stream.write(type+"\n")
+        stream.write(type.strip+"\n")
         items.each do |key, value|
-          stream.write("#{key}=#{value}\n")
+          stream.write("#{key}=#{value.to_s.strip}\n")
         end
-
         if data
           stream.write("DataLength=#{data.length}\n")
           stream.write("Data\n")
@@ -175,7 +159,6 @@ module Freenet
             type = line if type == nil
           end
         end
-        puts "Read #{type}"
         return Message.new(type, data, items)
       end
     end

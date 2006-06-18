@@ -1,0 +1,44 @@
+#!/usr/bin/ruby
+
+require '../freenet'
+puts 'Connecting to node, please wait...'
+client = Freenet::FCP::Client.new
+client.watch_global
+puts 'Client connected'
+loop do
+  command = STDIN.readline
+  case command.strip
+  when 'exit', 'quit'
+    exit 0
+  else
+    begin
+      u = Freenet::URI.new(command)
+      
+      client.get(u, false, 'Persistence'=>'reboot', 'Global'=>'true', 'Verbosity'=>'1') do |status, request, response|
+        puts status
+        case status
+        when :finished
+          puts 'Data finished'
+          if u.path
+            path = u.path.gsub('/','_').strip
+            path = 'download_'+random(100000).to_s if path == ''
+            File.open(path, 'w') do |f|
+              f.write(response.data)
+            end
+          end
+          raise Freenet::FCP::RequestFinished.new
+        when :failed
+          raise Freenet::FCP::RequestFinished.new
+        when :error
+          puts response
+          raise Freenet::FCP::RequestFinished.new
+        when :status
+          puts response.items
+        end
+        puts 'Callback finished'
+      end
+    rescue Freenet::URIError => e
+      puts 'Invalid URI'
+    end
+  end
+end

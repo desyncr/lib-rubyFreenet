@@ -104,12 +104,35 @@ module Freenet
         @lock.synchronize do
           log(INFO, "Connecting to #{@server}:#{@port}")
           @socket = TCPSocket.open(@server, @port)
+          class << @socket
+            alias_method :old_write, :write
+            alias_method :old_readline, :readline
+            def logger=(logger)
+              @logger = logger
+            end
+            
+            def log(severity, message)
+              @logger.add(severity, message)
+            end
+            
+            def write(str)
+              log(::Logger::Severity::DEBUG, "Writing: #{str.strip}")
+              old_write(str)
+            end
+            
+            def readline
+              line = old_readline
+              log(::Logger::Severity::DEBUG, "Reading: #{line.strip}")
+              line
+            end
+          end
+          @socket.logger = @logger
           @running = true
           @socket_thread = Thread.new {socket_thread}
           log(DEBUG, "Running thread")
         end
-      rescue
-        raise FCPConnectionError.new('Connection failed')
+      #rescue
+        #raise FCPConnectionError.new('Connection failed')
       end
 
       # Get the worker thread to disconnect. Doesn't guarantee immediate disconnection
@@ -182,12 +205,12 @@ module Freenet
                    'PriorityClass'=>1,
                    'Persistence'=>'reboot',
                    'Global'=>false}.merge(options || {})
-        options['Persistence'] = 'connection' unless async
+        options['Persistence'] = 'connection' if block
         options['URI'] = uri
         message = Message.new('ClientGet', nil, options, callback)
         log(INFO, "#{message.identifier} GET queued")
         send(message)
-        block_message(message, block)
+        block_message(message, block, &callback)
       end
       
       # === Put data in to freenet
@@ -218,13 +241,13 @@ module Freenet
                    'MaxRetries' => 10,
                    'Persistence' => 'reboot',
                    'UploadFrom' => 'direct'}.merge(options || {})
-        options['Persistence'] = 'connection' unless async
+        options['Persistence'] = 'connection' if block
         options['URI'] = uri
         message = Message.new('ClientPut', data, options, callback)
         message.content_type = options['Metadata.ContentType']
         log(INFO, "#{message.identifier} PUT queued")
         send(message)
-        block_message(message, block)
+        block_message(message, block, &callback)
       end
       
       # Upload a directory to a key, either SSK or USK. This directory must be local to the
@@ -237,28 +260,33 @@ module Freenet
                    'DefaultName' => 'index.html',
                    'Filename' => dir.to_s,
                    'AllowUnreadableFiles' => 'true'}.merge(options || {})
-        options['Persistence'] = 'connection' unless async
+        options['Persistence'] = 'connection' if block
         options['URI'] = uri
         message = Message.new('ClientPutDiskDir', nil, options, callback)
         log(INFO, "#{message.identifier} PUTDIR queued")
         send(message)
-        block_message(message, block)
+        block_message(message, block, &callback)
       end
       
       # Get the request status for a persistent request. Not useful in synchronous systems.
       #
       # Any replies will be directed to the async message's callback
-      def request_status(identifier, global, async=false)
+      def request_status(identifier, global, only_data=true, block=true, &callback)
         log(DEBUG, 'Requesting status')
-        message = Message.new('GetRequestStatus', nil, 'Identifier'=>identifier, 'Global'=>global)
+        message = Message.new('GetRequestStatus', nil, 'Identifier'=>identifier, 'Global'=>global, 'OnlyData'=>only_data)
         send(message)
-        message.wait_for_response
+        block_message(message, block, &callback)
+      end
+      
+      def watch_global(enabled=true, verbosity=1)
+        message = Message.new('WatchGlobal', nil, 'Enabled'=>enabled, 'VerbosityMask'=>verbosity)
+        send(message)
       end
 
       # Private calls
       private
       
-      def block_message(message, block)
+      def block_message(message, block, &callback)
         unless block
           message
         else
@@ -267,10 +295,11 @@ module Freenet
               message.wait_for_response
               message.lock
               message.response.lock
-              callback(message.status, message, message.response)
+              callback.call(message.status, message, message.response)
               message.response.unlock
               message.unlock
             rescue RequestFinished => e
+              message.response.unlock
               message.unlock
             end
           end
@@ -351,7 +380,7 @@ module Freenet
           end
         end
       rescue Exception => e
-        log(FATAL, "Exception in socket thread: #{e.class}: #{e.message}")
+        log(FATAL, "Exception in socket thread: #{e.class}: #{e.message}\n#{e.backtrace.join("\n")}")
         raise e
       ensure
         @socket.close
@@ -365,6 +394,7 @@ module Freenet
           original_message = @messages[message.identifier]
           if original_message
             status = message.status
+            log(DEBUG, "Message found: #{original_message.type}. #{original_message.callback?} :#{status}")
             original_message.reply = message
             if original_message.callback?
               thread = Thread.new do
@@ -373,10 +403,11 @@ module Freenet
                 original_message.callback(status)
                 case status
                 when :found
+                  log(INFO, 'Data found, requesting status')
                   original_message.content_type = message.items['Metadata.ContentType']
                   if original_message.items['Persistence'] != 'connection' and not original_message.data_found
                     original_message.data_found = true
-                    request_status(message.identifier, message.items['Global'] || false, true)
+                    request_status(original_message.identifier, original_message.items['Global'] || false, true, false)
                   end
                 when :failed
                   if message.items['Fatal'] == 'false'
@@ -395,7 +426,7 @@ module Freenet
               @callback_threads << thread
             end
           else
-            log(WARN, 'Got a message for an unknown identifier. Did you forget to reload persistent requests?')
+            log(WARN, "Got a message for an unknown identifier: #{message.identifier}. Did you forget to reload persistent requests?")
           end
         else
           log(DEBUG, 'Got message with no identifier')
@@ -412,6 +443,7 @@ module Freenet
       def send_message(message)
         raise FCPConnectionError.new('Socket does not exist') unless @socket
         @messages[message.identifier] ||= message
+        log(DEBUG, "Writing #{message.type}")
         unless message.load_only
           message.write(@socket)
         end
@@ -423,7 +455,9 @@ module Freenet
       # raises FCPConnectionError if socket isn't connected
       def read_message
         raise FCPConnectionError.new('Socket does not exist') unless @socket
-        return Message.read(@socket)
+        message = Message.read(@socket)
+        log(DEBUG, "Read #{message.type}")
+        message
       end
     end
   end
