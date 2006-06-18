@@ -1,4 +1,5 @@
 require 'cgi'
+require 'uri'
 
 module Freenet
   # Represents a Freenet URI. Provides manipulation with awareness of the Freenet structure, such
@@ -7,7 +8,7 @@ module Freenet
   # This could be completely wrong. Any criticism welcome
   class URI
     include Comparable
-    attr_accessor :type, :site, :name, :path, :uri, :version
+    attr_accessor :type, :key, :name, :path, :uri, :version
     
     # This can take a URI in following formats:
     #  /freenet:SSK@...
@@ -28,40 +29,72 @@ module Freenet
       
       @uri = uri
       @type = @uri.match(/^(?:[UKS]S|CH)K/)[0]
-      @site = @uri.match(/^(?:[UKS]S|CH)K@([^\/]+)/)[1]
+      @key = @uri.match(/^(?:[UKS]S|CH)K@([^\/]+)/)[1]
       case @type
-      when 'KSK', 'CHK'
-        @path = @uri.match(/(\/[^#\?]+)/)[1] if @uri =~ /\/[^#\?]+/
+      when 'CHK'
+        @path = @uri.match(/\/([^#\?]+)/)[1] if @uri =~ /\/[^#\?]+/
       when 'SSK'
         path = @uri.match(/(\/[^#\?]+)/)[1] if @uri =~ /\/[^#\?]+/
         if path
-          parts = @uri.match(%r{(/[^/]+?)(?:-([0-9]+))?(/.*)})
+          parts = @uri.match(%r{/([^/]+?)(?:-([0-9]+))?/(.*)})
           @name = parts[1]
-          @version = parts[2]
+          @version = parts[2].to_i if parts[2]
           @path = parts[3]
         end
       when 'USK'
         path = @uri.match(/(\/[^#\?]+)/)[1] if @uri =~ /\/[^#\?]+/
         if path
-          parts = @uri.match(%r{(/[^/]+?)(?:[/-](-?[0-9]+))(/?.*)})
+          parts = @uri.match(%r{/([^/]+?)[/-](-?[0-9]+)/?(.*)})
           @name = parts[1]
-          @version = parts[2]
+          @version = parts[2].to_i
           @path = parts[3]
         end
       end
       @anchor = @uri.match(/#(.+)/)[1] if @uri =~ /#.+/
       @query_string = @uri.match(/\?([^#]+)/)[1] if @uri =~ /\?/
     end
+    
+    def name=(name)
+      raise URIMethodNotImplementedError.new if ['KSK', 'CHK'].include? @type
+      @name = name
+    end
+    
+    def version=(version)
+      raise URIMethodNotImplementedError.new if ['KSK', 'CHK'].include? @type
+      @version = version
+    end
+    
+    def site
+      self.key
+    end
+    
+    def site=(site)
+      self.key=(site)
+    end
+    
+    def path=(path)
+      raise URIMethodNotImplementedError.new if ['KSK'].include? @type
+      @path = path
+    end
+    
+    def next_version
+      raise URIMethodNotImplementedError.new if ['KSK', 'CHK'].include? @type
+      u = self.dup
+      u.version = @version+1
+      u
+    end
 
     # Return a URI that can be fed to Freenet
     def uri
       case @type
-      when 'KSK','CHK'
-        "#{@type}@#{@site}#{@path}"
+      when 'KSK'
+        "#{@type}@#{@key}"
+      when 'CHK'
+        "#{@type}@#{@key}/#{@path}"
       when 'USK'
-        "#{@type}@#{@site}#{@name}#{'/'+@version.to_s if @version}#{"?#{@query_string}" if @query_string}#{@path}#{"##{@anchor}" if @anchor}"
+        "#{@type}@#{@key}/#{@name}/#{@version.to_s}/#{@path}#{"?#{@query_string}" if @query_string}#{"##{@anchor}" if @anchor}"
       when 'SSK'
-        "#{@type}@#{@site}#{@name}#{'-'+@version.to_s if @version}#{"?#{@query_string}" if @query_string}#{@path}#{"##{@anchor}" if @anchor}"
+        "#{@type}@#{@key}/#{@name}#{'-'+@version.to_s if @version}/#{@path}#{"?#{@query_string}" if @query_string}#{"##{@anchor}" if @anchor}"
       end
     end
     
@@ -69,13 +102,13 @@ module Freenet
     # to do what a browser would
     #  uri.merge("image.jpg")
     def merge(uri)
-      if uri =~ /^\//
+      if uri =~ /^\// or uri =~ /^freenet:/ or uri =~ /^(?:[UKS]S|CH)K/
         return uri
       end
       uri = uri.strip
       begin
         uri = URI.new(uri) unless uri.respond_to? :uri
-        if uri.site == @site
+        if uri.key == @key
           return merge_uri(uri)
         else
           return uri.uri
@@ -91,9 +124,9 @@ module Freenet
         case @type
         when 'KSK','CHK' #No point merging paths for this type...
         when 'USK'
-          "#{@type}@#{@site}#{@name}#{'/'+@version.to_s if @version}#{merge_paths(@path, uri)}"
+          "#{@type}@#{@key}/#{@name}#{'/'+@version.to_s if @version}/#{merge_paths(@path, uri)}"
         when 'SSK'
-          "#{@type}@#{@site}#{@name}#{'-'+@version.to_s if @version}#{merge_paths(@path, uri)}"
+          "#{@type}@#{@key}/#{@name}#{'-'+@version.to_s if @version}/#{merge_paths(@path, uri)}"
         end
       end
     end
@@ -106,7 +139,7 @@ module Freenet
     #
     # This may be completely wrong. Please tell me if it is.
     def root?
-      case @site
+      case @key
       when /^CHK/ then true
       when /^KSK/ then true
       when /^SSK/ then @path == %r{/[^/]/}
@@ -117,23 +150,24 @@ module Freenet
     end
     
     def <=>(other)
-      if other.site == @site
+      if other.key == @key
         other.path <=> @path
       else
-        other.site <=> @site
+        other.key <=> @key
       end
     end
     
     private
     
     def merge_uri(uri)
-      return uri.uri if uri.type != @type or uri.site != @site
+      return uri.uri if uri.type != @type or uri.key != @key
+      return uri.uri if ['KSK','CHK'].include? uri.type or ['KSK','CHK'].include? @type
       version = uri.version > @version ? uri.version : version
       name = uri.name
       path = merge_paths(@path, uri.path)
       uri = URI.new
       uri.type = @type
-      uri.site = @site
+      uri.key = @key
       uri.version = version
       uri.name = name
       uri.path = path
@@ -141,28 +175,15 @@ module Freenet
     end
     
     def merge_paths(old_path, new_path)
-      case new_path
-      when /^\.\.\//
-        unless old_path =~ /\/$/
-          old_path = old_path.gsub(/\/[^\/]+$/, '')
-        end
-        old_path = old_path.gsub(/\/[^\/]+$/,'/')
-        new_path = new_path.gsub(/^\.\.\//, '')
-        return merge_paths(old_path, new_path)
-      when /^\.\//
-        unless old_path =~ /\/$/
-          old_path = old_path.gsub(/\/[^\/]+$/, '/')
-        end
-        new_path = new_path.gsub(/\.\//,'')
-        return "#{old_path}#{new_path}"
-      when /^\//
-        return new_path
-      else
-        unless old_path =~ /\/$/
-          old_path = old_path.gsub(/\/[^\/]+$/, '/')
-        end
-        return "#{old_path}#{new_path}"
+      old_parts = old_path.split('/')
+      old_parts.pop unless old_path =~ %r{/$}
+      new_parts = new_path.split('/')
+      while new_parts[0] == '..'
+        old_parts.pop
+        new_parts.shift
       end
+      new_parts.shift while new_parts[0] == '.'
+      return (old_parts+new_parts).join('/')
     end
   end
 end

@@ -90,6 +90,54 @@ module Freenet
         Thread.stop
       end
       
+      # Gets the status for this message. The key ones all apps need to handle are:
+      # [:finished] When a request has successfully finished
+      # [:redirect] The message has recieved a redirect internally
+      #             This could be handled internally, I haven't decided yet.
+      # [:failed] The request has fatally failed
+      # [:error] An error in the FCP messages occured. This is caused by a bug in rubyFreenet
+      def status(message)
+        case message.type
+        when 'SSKKeypair'
+          original_message.callback(:keypair)
+        when 'AllData'
+          original_message.callback(:finished)
+        when 'PersistentGet'
+          original_message.callback(:pending)
+        when 'SimpleProgress'
+          original_message.callback(:progress)
+        when 'ProtocolError'
+          original_message.callback(:failed)
+        when 'URIGenerated'
+          original_message.callback(:uri_generated)
+        when 'PutSuccessful'
+          original_message.callback(:finished)
+        when 'PutFailed'
+          original_message.callback(:failed)
+        when 'ProtocolError'
+          original_message.callback(:error)
+        when 'DataFound'
+          original_message.callback(:found)
+        when 'GetFailed'
+          if message.items['RedirectURI']
+            original_message.callback(:redirect)
+          elsif message.items['Fatal'] == 'false'
+            case message.items['Code']
+            when '15' # Node overloaded. Wait then re-request. We can re-use the ID as GetFailed removes the ID from FRED
+              if original_message.retries < 5
+                original_message.callback(:retrying)
+              else
+                original_message.callback(:failed)
+              end
+            else
+              original_message.callback(:failed)
+            end
+          else
+            original_message.callback(:failed)
+          end
+        end
+      end
+      
       # Write this object to an FCP stream.
       def write(stream)
         stream.write(type+"\n")

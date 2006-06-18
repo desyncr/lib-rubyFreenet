@@ -32,36 +32,40 @@ module Freenet
     # Client names are unique to an application. If your application may have more than one
     # instance per node then each instance must have a unique name. In the event of a name
     # conflict FRED assumes that the original application has died and the new one is a replacement
-    # and disconnects the oldest connection,
+    # and disconnects the oldest connection.
+    #
+    # Most methods take a block, this is called with each message received. The arguments are
+    # a status code, the request message and the response message. To break out of the response
+    # loop raise Freenet::FCP::RequestFinished and any futher responses from the node for the
+    # request will be ignored.
     #
     #  require 'freenet/client'
     #  client = Freenet::FCP::Client.new('MyFreenetClient', '127.0.0.1', 9481)
-    #  file = client.get("KSK@gpl.txt")
+    #  file = client.get("KSK@gpl.txt") do |status, request, response|
+    #    case status
+    #    when :finished
+    #      puts response.data
+    #      raise Freenet::FCP::RequestFinished.new
+    #    when :failed
+    #      puts "Request failed :("
+    #      raise Freenet::FCP::RequestFinished.new
+    #    end
+    #  end
+    #
+    # See method details for possible status codes. All callbacks may get the following
+    # [:error] Freenet reported a ProtocolError
     # 
     # === Asynchronous Use
     #
-    # There are two methods to asynchronous requests, both with their own merits
-    #
-    # ==== Polling
-    # 
-    # Polling is not implemented yet, but Messages will have a ResponseQueue where responses
-    # can be read in order or recipt.
-    #
-    # ==== Callbacks
-    #
-    # FCP::Message can take a block to run as soon as a reply is received. These blocks run
-    # in a separate thread, so they must be thread safe if they use variables outside their
-    # scope. The block arguments are |status, message, response|, message is the original 
-    # message for reference purposes.
+    # Asynchronous is very similar to synchronous use, except the block is run in a separate thread
+    # each time it's called. Your application will need to be thread safe.
     #
     #  client.get("KSK@gpl.txt") do |status, message, response|
     #    case status
     #    when :finished then puts response.data
     #    end
     #  end
-    #
-    # See method details for possible status codes. All callbacks may get the following
-    # [:error] Freenet reported a ProtocolError
+    #  # The application will exit here unless you block somehow.
     #
     # ==== Thread safety
     # 
@@ -132,10 +136,10 @@ module Freenet
       # Generates a keypair for SSK use. If used synchronously it returns
       # [InsertURI, RequestURI], otherwise extract InsertURI and RequestURI
       # from response.items
-      def generate_keypair(async = false, &callback)
+      def generate_keypair(block = true, &callback)
         message = Message.new('GenerateSSK', nil, nil, callback)
-        send(message, async)
-        if async
+        send(message)
+        unless block
           message
         else
           message.wait_for_response
@@ -145,9 +149,7 @@ module Freenet
       
       # == Request a file from Freenet.
       #
-      # Synchronous requests will either get the response message or a RequestFailed exception
-      # 
-      # Asyncronous requests get a lot more status information. The messages are:
+      # Applicable status messages:
       # [:pending] The message is in Freenet's queue.
       # [:progress] A SimpleProgress message has been recieved
       # [:redirect] The node has found a redirect for the file. This is returned
@@ -171,9 +173,8 @@ module Freenet
       #    when :finished then puts response.data
       #    end
       #  end
-      def get(uri, async=false, options=nil, &callback)
+      def get(uri, block=true, options=nil, &callback)
         uri = uri.uri if uri.respond_to? :uri
-        async = true if callback
         options = {'IgnoreDS'=>false,
                    'DSOnly'=>false,
                    'Verbosity'=>0,
@@ -185,30 +186,8 @@ module Freenet
         options['URI'] = uri
         message = Message.new('ClientGet', nil, options, callback)
         log(INFO, "#{message.identifier} GET queued")
-        send(message, async)
-        if async
-          message
-        else
-          loop do
-            message.wait_for_response
-            puts "Got response: #{message.response.type}"
-            message.lock
-            case message.response.type
-            when 'AllData'
-              message.unlock
-              return message.response
-            when 'GetFailed','ProtocolError'  
-              message.unlock
-              if message.response.items['Code'] == '27'
-                get(message.response.items['RedirectURI'], true, options)
-              else
-                raise RequestFailed.new(message.response)
-              end
-            else
-              message.unlock
-            end
-          end
-        end
+        send(message)
+        block_message(message, block)
       end
       
       # === Put data in to freenet
@@ -232,9 +211,8 @@ module Freenet
       #
       # ==== Creating a redirect URI
       #  put('SSK@my-site-key/my-site/image.jpg', nil, false, 'UploadFrom'=>'redirect','TargetURI'=>'KSK@image.jpg')
-      def put(uri, data=nil, async=false, options=nil, &callback)
+      def put(uri, data=nil, block=true, options=nil, &callback)
         uri = uri.uri if uri.respond_to? :uri
-        async = true if callback
         options = {'Metadata.ContentType' => 'application/octet-stream',
                    'Verbosity' => 0,
                    'MaxRetries' => 10,
@@ -243,34 +221,16 @@ module Freenet
         options['Persistence'] = 'connection' unless async
         options['URI'] = uri
         message = Message.new('ClientPut', data, options, callback)
-        message.content-type = options['Metadata.ContentType']
+        message.content_type = options['Metadata.ContentType']
         log(INFO, "#{message.identifier} PUT queued")
-        send(message, async)
-        if async
-          message
-        else
-          loop do
-            message.wait_for_response
-            message.lock
-            case message.response.type
-            when 'PutSuccessful'
-              message.unlock
-              return message.response.items['URI']
-            when 'PutFailed','ProtocolError'
-              message.unlock
-              raise RequestFailed.new(message.response)
-            else
-              message.unlock
-            end
-          end
-        end
+        send(message)
+        block_message(message, block)
       end
       
       # Upload a directory to a key, either SSK or USK. This directory must be local to the
       # node we're connecting to.
-      def putdir(uri, dir, async=false, options=nil, &callback)
+      def putdir(uri, dir, block=true, options=nil, &callback)
         uri = uri.uri if uri.respond_to? :uri
-        async = true if callback
         options = {'Verbosity' => 0,
                    'MaxRetries' => 10,
                    'PriorityClass' => 3,
@@ -281,28 +241,8 @@ module Freenet
         options['URI'] = uri
         message = Message.new('ClientPutDiskDir', nil, options, callback)
         log(INFO, "#{message.identifier} PUTDIR queued")
-        send(message, async)
-        if async
-          message
-        else
-          loop do
-            message.wait_for_response
-            message.lock
-            case message.response.type
-            when 'PutSuccessful'
-              message.unlock
-              return message.response.items['URI']
-            when 'PutFailed','ProtocolError'
-              message.unlock
-              raise RequestFailed.new(message.response)
-            when 'SimpleProgress'
-              puts "T:#{message.response.items['Total']}/R:#{message.response.items['Required']}/F:#{message.response.items['Failed']}/FF:#{message.response.items['FatallyFailed']}/S:#{message.response.items['Succeeded']}/#{message.response.items['FinalizedTotal']}"
-              message.unlock
-            else
-              message.unlock
-            end
-          end
-        end
+        send(message)
+        block_message(message, block)
       end
       
       # Get the request status for a persistent request. Not useful in synchronous systems.
@@ -311,11 +251,32 @@ module Freenet
       def request_status(identifier, global, async=false)
         log(DEBUG, 'Requesting status')
         message = Message.new('GetRequestStatus', nil, 'Identifier'=>identifier, 'Global'=>global)
-        send(message, async)
+        send(message)
         message.wait_for_response
       end
 
+      # Private calls
       private
+      
+      def block_message(message, block)
+        unless block
+          message
+        else
+          loop do
+            begin
+              message.wait_for_response
+              message.lock
+              message.response.lock
+              callback(message.status, message, message.response)
+              message.response.unlock
+              message.unlock
+            rescue RequestFinished => e
+              message.unlock
+            end
+          end
+        end
+      end
+      
       # Send the ClientHello message to the FCP server.
       def hello
         log(DEBUG, 'Sending ClientHello')
@@ -336,8 +297,7 @@ module Freenet
       # Queue the message for sending by the worker thread.
       # [message] The FCP::Message to send to the server. You may retain object for later use, but
       #           it may block if it's in use.
-      # param asynchronous Whether the reader should block until a response is received
-      def send(message, asynchronous = false)
+      def send(message)
         @message_queue << message
         message
       end
@@ -404,56 +364,29 @@ module Freenet
           log(INFO, "#{message.identifier}: recieved #{message.type}")
           original_message = @messages[message.identifier]
           if original_message
+            status = message.status
             original_message.reply = message
             if original_message.callback?
               thread = Thread.new do
                 original_message.lock
                 message.lock
-                case message.type
-                when 'SSKKeypair'
-                  original_message.callback(:keypair)
-                when 'AllData'
-                  original_message.callback(:finished)
-                when 'PersistentGet'
-                  original_message.callback(:pending)
-                when 'SimpleProgress'
-                  original_message.callback(:progress)
-                when 'ProtocolError'
-                  original_message.callback(:failed)
-                when 'URIGenerated'
-                  original_message.callback(:uri_generated)
-                when 'PutSuccessful'
-                  original_message.callback(:success)
-                when 'PutFailed'
-                  original_message.callback(:failed)
-                when 'ProtocolError'
-                  original_message.callback(:error)
-                when 'DataFound'
-                  original_message.callback(:found)
+                original_message.callback(status)
+                case status
+                when :found
                   original_message.content_type = message.items['Metadata.ContentType']
                   if original_message.items['Persistence'] != 'connection' and not original_message.data_found
                     original_message.data_found = true
                     request_status(message.identifier, message.items['Global'] || false, true)
                   end
-                when 'GetFailed'
-                  if message.items['RedirectURI']
-                    original_message.callback(:redirect)
-                  elsif message.items['Fatal'] == 'false'
-                    case message.items['Code']
-                    when '15' # Node overloaded. Wait then re-request. We can re-use the ID as GetFailed removes the ID from FRED
+                when :failed
+                  if message.items['Fatal'] == 'false'
+                    if message.items['Code'] == 15
                       if original_message.retries < 5
                         original_message.retries += 1
-                        original_message.callback(:retrying)
                         log(DEBUG, "Retrying #{original_message.items['URI']}")
                         get(original_message.items['URI'], true, original_message.items)
-                      else
-                        original_message.callback(:failed)
                       end
-                    else
-                      original_message.callback(:failed)
                     end
-                  else
-                    original_message.callback(:failed)
                   end
                 end
                 message.unlock
