@@ -73,6 +73,15 @@ module Freenet
     # acquire locks with Message#lock before using, but don't forget to release with Message#unlock.
     #
     # Message#synchronize may be implemented later.
+    #
+    # == Unknown and All Message callbacks
+    # 
+    # Client#all_messages takes a block that takes status, request and response and is called for
+    # all messages, including unknown ones. If the message is unknown then request is nil.
+    #
+    # Client#unknown_message takes a block that takes status, response for all unknown messages
+    #
+    # Both these callbacks are threaded.
     class Client
       include Logger::Severity
 
@@ -269,8 +278,10 @@ module Freenet
       end
       
       # Get the request status for a persistent request. Not useful in synchronous systems.
+      # This will output some PersistentGet/PersistentPut requests, which don't invoke callbacks,
+      # SimpleProgress if Verbosity=1, DataFound for all GET requests and AllData if ReturnType=direct
       #
-      # Any replies will be directed to the async message's callback
+      # Any replies will be directed to the async message's callback.
       def request_status(identifier, global, only_data=true, block=true, &callback)
         log(DEBUG, 'Requesting status')
         message = Message.new('GetRequestStatus', nil, 'Identifier'=>identifier, 'Global'=>global, 'OnlyData'=>only_data)
@@ -278,14 +289,39 @@ module Freenet
         block_message(message, block, &callback)
       end
       
+      # Enable global queue watching. This isn't of much use until I implement a global callback for unknown
+      # messages.
       def watch_global(enabled=true, verbosity=1)
         message = Message.new('WatchGlobal', nil, 'Enabled'=>enabled, 'VerbosityMask'=>verbosity)
         send(message)
+      end
+      
+      # Modify a persistent request. Pass the options to change, though Identifier and Global
+      # must remain the same
+      def modify_request(message, options)
+        options = options.merge('Identifier'=>message.identifier, 'Global'=>message.global)
+        message = Message.new('ModifyPersistentRequest', nil, options)
+        send(message)
+      end
+      
+      # Remove a persistent request from the node. Call this once you've finished with a request.
+      def remove_request(message)
+        message = Message.new('RemovePersistentRequest', nil, 'Identifier'=>message.identifier, 'Global'=>message.items['Global'])
+        send(message)
+      end
+      
+      def unknown_message(&callback)
+        @unknown_callback = callback
+      end
+
+      def all_messages(&callback)
+        @all_callback = callback
       end
 
       # Private calls
       private
       
+      # Block the current thread until a response is received, then run callback.
       def block_message(message, block, &callback)
         unless block
           message
@@ -424,9 +460,27 @@ module Freenet
                 original_message.unlock
               end
               @callback_threads << thread
+              if @all_callback
+                thread = Thread.new do
+                  message.lock
+                  status = message.status
+                  @all_callback.call(status, original_message, message)
+                  message.unlock
+                end
+                @callback_threads << thread
+              end
             end
           else
-            log(WARN, "Got a message for an unknown identifier: #{message.identifier}. Did you forget to reload persistent requests?")
+            if @unknown_callback or @all_callback
+              thread = Thread.new do
+                message.lock
+                status = message.status
+                @unknown_callback.call(status, message) if @unknown_callback
+                @all_callback.call(status, nil, message) if @all_callback
+                message.unlock
+              end
+              @callback_threads << thread
+            end
           end
         else
           log(DEBUG, 'Got message with no identifier')
@@ -446,6 +500,10 @@ module Freenet
         log(DEBUG, "Writing #{message.type}")
         unless message.load_only
           message.write(@socket)
+        end
+        
+        if message.type == 'RemovePersistentRequest'
+          @messages.delete(message.identifier)
         end
       end
 

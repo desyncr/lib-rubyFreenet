@@ -1,0 +1,13 @@
+= Freenet Queue Downloader =
+
+Simply run ./rqueue
+
+All requests are stored in the global queue, all completed requests are removed from the queue.
+
+== Web Interface ==
+The web interface listens on all IP addresses, not just localhost. Point your web browser to http://127.0.0.1:9877/
+
+Paste URLs in to the box, they'll be downloaded. Click download to get the file through your browser, remove removes it from the list of files.
+
+== DRuby Interface ==
+The DRb interface listens on druby://127.0.0.1:9876. Run rdoc over rqueue to get documentation.

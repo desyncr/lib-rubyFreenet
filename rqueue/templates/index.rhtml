@@ -1,0 +1,41 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+	"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html>
+	<head>
+		<title>QueueWeb</title>
+	</head>
+	<body>
+		<h1>QueueWeb</h1>
+		<h2>Current Requests</h2>
+		<table>
+			<thead>
+				<tr>
+					<th>URI</th>
+					<th>Status</th>
+					<th>Download</th>
+					<th>Remove</th>
+				</tr>
+			</thead>
+			<tbody>
+				<% @status.each do |uri, status| %>
+				<tr>
+					<td><%=uri%></td>
+					<td><%=status[:status]%></td>
+					<td><%if status[:status] == 'Finished'%>
+						<a href="/download?uri=<%=CGI::escape(uri)%>">Download</a>
+					<%end%></td>
+					<td><%if ['Finished', 'Failed'].include? status[:status] %>
+						<a href="/remove?uri=<%=CGI::escape(uri)%>">Remove</a>
+					<%end%></td>
+				</tr>
+				<% end %>
+			</tbody>
+		</table>
+		
+		<h2>Add URIs</h2>
+		<form action="/add_uris" method="post" accept-charset="utf-8">
+			<textarea name="uris" rows="8" cols="40"></textarea><br />
+			<input type="submit" value="Continue &rarr;" />
+		</form>
+	</body>
+</html>
