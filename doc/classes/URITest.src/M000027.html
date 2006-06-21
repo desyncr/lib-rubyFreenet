@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+  <title>test_part_merge (URITest)</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <link rel="stylesheet" href="../.././rdoc-style.css" type="text/css" media="screen" />
+</head>
+<body class="standalone-code">
+  <pre><span class="ruby-comment cmt"># File freenet/tests/uri_tests.rb, line 77</span>
+  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">test_part_merge</span>
+    <span class="ruby-identifier">uri_text</span> = <span class="ruby-value str">'SSK@1234,5678/coolsite/'</span>
+    <span class="ruby-identifier">uri</span> = <span class="ruby-constant">Freenet</span><span class="ruby-operator">::</span><span class="ruby-constant">URI</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">uri_text</span>.<span class="ruby-identifier">dup</span>)
+    <span class="ruby-identifier">assert_equal</span>(<span class="ruby-identifier">uri_text</span><span class="ruby-operator">+</span><span class="ruby-value str">'mypic.jpg'</span>, <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">merge</span>(<span class="ruby-value str">'mypic.jpg'</span>))
+    <span class="ruby-identifier">assert_equal</span>(<span class="ruby-identifier">uri_text</span><span class="ruby-operator">+</span><span class="ruby-value str">'things/meh.html'</span>, <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">merge</span>(<span class="ruby-value str">'things/meh.html'</span>))
+    <span class="ruby-identifier">assert_equal</span>(<span class="ruby-value str">'/stuff'</span>, <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">merge</span>(<span class="ruby-value str">'/stuff'</span>))
+    <span class="ruby-identifier">assert_equal</span>(<span class="ruby-identifier">uri_text</span>, <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">merge</span>(<span class="ruby-value str">'../'</span>))
+    <span class="ruby-identifier">assert_equal</span>(<span class="ruby-value str">'CHK@123/thing.jpg'</span>, <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">merge</span>(<span class="ruby-value str">'CHK@123/thing.jpg'</span>))
+    <span class="ruby-identifier">assert_equal</span>(<span class="ruby-value str">'freenet:CHK@123/thing.jpg'</span>, <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">merge</span>(<span class="ruby-value str">'freenet:CHK@123/thing.jpg'</span>))
+    <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">version</span> = <span class="ruby-value">3</span>
+    <span class="ruby-identifier">assert_equal</span>(<span class="ruby-value str">'SSK@1234,5678/coolsite-3/'</span>, <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">uri</span>)
+    <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">key</span> = <span class="ruby-value str">'9876,54321'</span>
+    <span class="ruby-identifier">assert_equal</span>(<span class="ruby-value str">'SSK@9876,54321/coolsite-3/'</span>, <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">uri</span>)
+  <span class="ruby-keyword kw">end</span></pre>
+</body>
+</html>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+  <title>test_write_message (MessageTests)</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <link rel="stylesheet" href="../.././rdoc-style.css" type="text/css" media="screen" />
+</head>
+<body class="standalone-code">
+  <pre><span class="ruby-comment cmt"># File freenet/tests/message_tests.rb, line 5</span>
+  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">test_write_message</span>
+    <span class="ruby-identifier">m</span> = <span class="ruby-constant">Freenet</span><span class="ruby-operator">::</span><span class="ruby-constant">FCP</span><span class="ruby-operator">::</span><span class="ruby-constant">Message</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value str">'TestMessage'</span>, <span class="ruby-keyword kw">nil</span>, <span class="ruby-value str">'Item1'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value str">'Item1Value'</span>, <span class="ruby-value str">'Item2'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value str">'Item2Value'</span>)
+    <span class="ruby-identifier">s</span> = <span class="ruby-constant">StringIO</span>.<span class="ruby-identifier">new</span>
+    <span class="ruby-identifier">m</span>.<span class="ruby-identifier">write</span>(<span class="ruby-identifier">s</span>)
+    <span class="ruby-identifier">s</span>.<span class="ruby-identifier">rewind</span>
+    <span class="ruby-identifier">assert_equal</span>(<span class="ruby-value str">'TestMessage'</span>, <span class="ruby-identifier">s</span>.<span class="ruby-identifier">readline</span>.<span class="ruby-identifier">strip</span>)
+    <span class="ruby-value">3</span>.<span class="ruby-identifier">times</span> <span class="ruby-keyword kw">do</span>
+      <span class="ruby-identifier">assert</span>([<span class="ruby-value str">'Item1=Item1Value'</span>, <span class="ruby-value str">'Item2=Item2Value'</span>, <span class="ruby-node">&quot;Identifier=#{m.identifier}&quot;</span>].<span class="ruby-identifier">include?</span> <span class="ruby-identifier">s</span>.<span class="ruby-identifier">readline</span>.<span class="ruby-identifier">strip</span>)
+    <span class="ruby-keyword kw">end</span>
+    <span class="ruby-identifier">assert_equal</span>(<span class="ruby-value str">'EndMessage'</span>,<span class="ruby-identifier">s</span>.<span class="ruby-identifier">readline</span>.<span class="ruby-identifier">strip</span>)
+  <span class="ruby-keyword kw">end</span></pre>
+</body>
+</html>

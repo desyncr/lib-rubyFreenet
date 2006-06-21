@@ -113,34 +113,26 @@ long time.
 your application may have more than one instance per node then each
 instance must have a unique name. In the event of a name conflict FRED
 assumes that the original application has died and the new one is a
-replacement and disconnects the oldest connection,
+replacement and disconnects the oldest connection.
+</p>
+<p>
+Most methods take a block, this is called with each message received. The
+arguments are a status code, the request message and the response message.
+To break out of the response loop raise <a
+href="RequestFinished.html">Freenet::FCP::RequestFinished</a> and any
+futher responses from the node for the request will be ignored.
 </p>
 <pre>
  require 'freenet/client'
  client = Freenet::FCP::Client.new('MyFreenetClient', '127.0.0.1', 9481)
- file = client.get(&quot;KSK@gpl.txt&quot;)
-</pre>
-<h3>Asynchronous Use</h3>
-<p>
-There are two methods to asynchronous requests, both with their own merits
-</p>
-<h4>Polling</h4>
-<p>
-Polling is not implemented yet, but Messages will have a ResponseQueue
-where responses can be read in order or recipt.
-</p>
-<h4>Callbacks</h4>
-<p>
-<a href="Message.html">FCP::Message</a> can take a block to run as soon as
-a reply is received. These blocks run in a separate thread, so they must be
-thread safe if they use variables outside their scope. The block arguments
-are |status, message, response|, message is the original message for
-reference purposes.
-</p>
-<pre>
- client.get(&quot;KSK@gpl.txt&quot;) do |status, message, response|
+ file = client.get(&quot;KSK@gpl.txt&quot;) do |status, request, response|
    case status
-   when :finished then puts response.data
+   when :finished
+     puts response.data
+     raise Freenet::FCP::RequestFinished.new
+   when :failed
+     puts &quot;Request failed :(&quot;
+     raise Freenet::FCP::RequestFinished.new
    end
  end
 </pre>
@@ -153,15 +145,42 @@ following
 
 </dd>
 </dl>
+<h3>Asynchronous Use</h3>
+<p>
+Asynchronous is very similar to synchronous use, except the block is run in
+a separate thread each time it&#8217;s called. Your application will need
+to be thread safe.
+</p>
+<pre>
+ client.get(&quot;KSK@gpl.txt&quot;) do |status, message, response|
+   case status
+   when :finished then puts response.data
+   end
+ end
+ # The application will exit here unless you block somehow.
+</pre>
 <h4>Thread safety</h4>
 <p>
 In callbacks the messages are locked before the callback runs. Always
-acquire locks with <a href="Message.html#M000010">Message#lock</a> before
+acquire locks with <a href="Message.html#M000030">Message#lock</a> before
 using, but don&#8217;t forget to release with <a
-href="Message.html#M000011">Message#unlock</a>.
+href="Message.html#M000031">Message#unlock</a>.
 </p>
 <p>
 Message#synchronize may be implemented later.
+</p>
+<h2>Unknown and All <a href="Message.html">Message</a> callbacks</h2>
+<p>
+<a href="Client.html#M000054">Client#all_messages</a> takes a block that
+takes status, request and response and is called for all messages,
+including unknown ones. If the message is unknown then request is nil.
+</p>
+<p>
+<a href="Client.html#M000053">Client#unknown_message</a> takes a block that
+takes status, response for all unknown messages
+</p>
+<p>
+Both these callbacks are threaded.
 </p>
 
     </div>
@@ -173,15 +192,20 @@ Message#synchronize may be implemented later.
       <h3 class="section-bar">Methods</h3>
 
       <div class="name-list">
-      <a href="#M000019">connect</a>&nbsp;&nbsp;
-      <a href="#M000020">disconnect</a>&nbsp;&nbsp;
-      <a href="#M000022">generate_keypair</a>&nbsp;&nbsp;
-      <a href="#M000023">get</a>&nbsp;&nbsp;
-      <a href="#M000021">load_request</a>&nbsp;&nbsp;
-      <a href="#M000018">new</a>&nbsp;&nbsp;
-      <a href="#M000024">put</a>&nbsp;&nbsp;
-      <a href="#M000025">putdir</a>&nbsp;&nbsp;
-      <a href="#M000026">request_status</a>&nbsp;&nbsp;
+      <a href="#M000054">all_messages</a>&nbsp;&nbsp;
+      <a href="#M000042">connect</a>&nbsp;&nbsp;
+      <a href="#M000043">disconnect</a>&nbsp;&nbsp;
+      <a href="#M000045">generate_keypair</a>&nbsp;&nbsp;
+      <a href="#M000046">get</a>&nbsp;&nbsp;
+      <a href="#M000044">load_request</a>&nbsp;&nbsp;
+      <a href="#M000051">modify_request</a>&nbsp;&nbsp;
+      <a href="#M000041">new</a>&nbsp;&nbsp;
+      <a href="#M000047">put</a>&nbsp;&nbsp;
+      <a href="#M000048">putdir</a>&nbsp;&nbsp;
+      <a href="#M000052">remove_request</a>&nbsp;&nbsp;
+      <a href="#M000049">request_status</a>&nbsp;&nbsp;
+      <a href="#M000053">unknown_message</a>&nbsp;&nbsp;
+      <a href="#M000050">watch_global</a>&nbsp;&nbsp;
       </div>
     </div>
 
@@ -210,12 +234,12 @@ Message#synchronize may be implemented later.
     <div id="methods">
       <h3 class="section-bar">Public Class methods</h3>
 
-      <div id="method-M000018" class="method-detail">
-        <a name="M000018"></a>
+      <div id="method-M000041" class="method-detail">
+        <a name="M000041"></a>
 
         <div class="method-heading">
-          <a href="Client.src/M000018.html" target="Code" class="method-signature"
-            onclick="popupCode('Client.src/M000018.html');return false;">
+          <a href="Client.src/M000041.html" target="Code" class="method-signature"
+            onclick="popupCode('Client.src/M000041.html');return false;">
           <span class="method-name">new</span><span class="method-args">(client_name=nil, server=&quot;127.0.0.1&quot;, port=9481, options={})</span>
           </a>
         </div>
@@ -249,12 +273,26 @@ connection fails
 
       <h3 class="section-bar">Public Instance methods</h3>
 
-      <div id="method-M000019" class="method-detail">
-        <a name="M000019"></a>
+      <div id="method-M000054" class="method-detail">
+        <a name="M000054"></a>
 
         <div class="method-heading">
-          <a href="Client.src/M000019.html" target="Code" class="method-signature"
-            onclick="popupCode('Client.src/M000019.html');return false;">
+          <a href="Client.src/M000054.html" target="Code" class="method-signature"
+            onclick="popupCode('Client.src/M000054.html');return false;">
+          <span class="method-name">all_messages</span><span class="method-args">(&amp;callback)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+        </div>
+      </div>
+
+      <div id="method-M000042" class="method-detail">
+        <a name="M000042"></a>
+
+        <div class="method-heading">
+          <a href="Client.src/M000042.html" target="Code" class="method-signature"
+            onclick="popupCode('Client.src/M000042.html');return false;">
           <span class="method-name">connect</span><span class="method-args">()</span>
           </a>
         </div>
@@ -270,12 +308,12 @@ something goes wrong
         </div>
       </div>
 
-      <div id="method-M000020" class="method-detail">
-        <a name="M000020"></a>
+      <div id="method-M000043" class="method-detail">
+        <a name="M000043"></a>
 
         <div class="method-heading">
-          <a href="Client.src/M000020.html" target="Code" class="method-signature"
-            onclick="popupCode('Client.src/M000020.html');return false;">
+          <a href="Client.src/M000043.html" target="Code" class="method-signature"
+            onclick="popupCode('Client.src/M000043.html');return false;">
           <span class="method-name">disconnect</span><span class="method-args">()</span>
           </a>
         </div>
@@ -288,13 +326,13 @@ disconnection as any message currently being read will still be processed
         </div>
       </div>
 
-      <div id="method-M000022" class="method-detail">
-        <a name="M000022"></a>
+      <div id="method-M000045" class="method-detail">
+        <a name="M000045"></a>
 
         <div class="method-heading">
-          <a href="Client.src/M000022.html" target="Code" class="method-signature"
-            onclick="popupCode('Client.src/M000022.html');return false;">
-          <span class="method-name">generate_keypair</span><span class="method-args">(async = false, &amp;callback)</span>
+          <a href="Client.src/M000045.html" target="Code" class="method-signature"
+            onclick="popupCode('Client.src/M000045.html');return false;">
+          <span class="method-name">generate_keypair</span><span class="method-args">(block = true, &amp;callback)</span>
           </a>
         </div>
       
@@ -307,24 +345,20 @@ response.items
         </div>
       </div>
 
-      <div id="method-M000023" class="method-detail">
-        <a name="M000023"></a>
+      <div id="method-M000046" class="method-detail">
+        <a name="M000046"></a>
 
         <div class="method-heading">
-          <a href="Client.src/M000023.html" target="Code" class="method-signature"
-            onclick="popupCode('Client.src/M000023.html');return false;">
-          <span class="method-name">get</span><span class="method-args">(uri, async=false, options=nil, &amp;callback)</span>
+          <a href="Client.src/M000046.html" target="Code" class="method-signature"
+            onclick="popupCode('Client.src/M000046.html');return false;">
+          <span class="method-name">get</span><span class="method-args">(uri, block=true, options=nil, &amp;callback)</span>
           </a>
         </div>
       
         <div class="method-description">
           <h2>Request a file from <a href="../../Freenet.html">Freenet</a>.</h2>
 <p>
-Synchronous requests will either get the response message or a <a
-href="RequestFailed.html">RequestFailed</a> exception
-</p>
-<p>
-Asyncronous requests get a lot more status information. The messages are:
+Applicable status messages:
 </p>
 <dl>
 <dt>:pending</dt><dd>The message is in <a href="../../Freenet.html">Freenet</a>&#8217;s queue.
@@ -369,12 +403,12 @@ not direct (the default) now is the time to do something
         </div>
       </div>
 
-      <div id="method-M000021" class="method-detail">
-        <a name="M000021"></a>
+      <div id="method-M000044" class="method-detail">
+        <a name="M000044"></a>
 
         <div class="method-heading">
-          <a href="Client.src/M000021.html" target="Code" class="method-signature"
-            onclick="popupCode('Client.src/M000021.html');return false;">
+          <a href="Client.src/M000044.html" target="Code" class="method-signature"
+            onclick="popupCode('Client.src/M000044.html');return false;">
           <span class="method-name">load_request</span><span class="method-args">(message)</span>
           </a>
         </div>
@@ -387,13 +421,31 @@ notes above for more details
         </div>
       </div>
 
-      <div id="method-M000024" class="method-detail">
-        <a name="M000024"></a>
+      <div id="method-M000051" class="method-detail">
+        <a name="M000051"></a>
 
         <div class="method-heading">
-          <a href="Client.src/M000024.html" target="Code" class="method-signature"
-            onclick="popupCode('Client.src/M000024.html');return false;">
-          <span class="method-name">put</span><span class="method-args">(uri, data=nil, async=false, options=nil, &amp;callback)</span>
+          <a href="Client.src/M000051.html" target="Code" class="method-signature"
+            onclick="popupCode('Client.src/M000051.html');return false;">
+          <span class="method-name">modify_request</span><span class="method-args">(message, options)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Modify a persistent request. Pass the options to change, though Identifier
+and Global must remain the same
+</p>
+        </div>
+      </div>
+
+      <div id="method-M000047" class="method-detail">
+        <a name="M000047"></a>
+
+        <div class="method-heading">
+          <a href="Client.src/M000047.html" target="Code" class="method-signature"
+            onclick="popupCode('Client.src/M000047.html');return false;">
+          <span class="method-name">put</span><span class="method-args">(uri, data=nil, block=true, options=nil, &amp;callback)</span>
           </a>
         </div>
       
@@ -438,13 +490,13 @@ this stage, but the <a href="../URI.html">URI</a> is known
         </div>
       </div>
 
-      <div id="method-M000025" class="method-detail">
-        <a name="M000025"></a>
+      <div id="method-M000048" class="method-detail">
+        <a name="M000048"></a>
 
         <div class="method-heading">
-          <a href="Client.src/M000025.html" target="Code" class="method-signature"
-            onclick="popupCode('Client.src/M000025.html');return false;">
-          <span class="method-name">putdir</span><span class="method-args">(uri, dir, async=false, options=nil, &amp;callback)</span>
+          <a href="Client.src/M000048.html" target="Code" class="method-signature"
+            onclick="popupCode('Client.src/M000048.html');return false;">
+          <span class="method-name">putdir</span><span class="method-args">(uri, dir, block=true, options=nil, &amp;callback)</span>
           </a>
         </div>
       
@@ -456,23 +508,75 @@ local to the node we&#8217;re connecting to.
         </div>
       </div>
 
-      <div id="method-M000026" class="method-detail">
-        <a name="M000026"></a>
+      <div id="method-M000052" class="method-detail">
+        <a name="M000052"></a>
 
         <div class="method-heading">
-          <a href="Client.src/M000026.html" target="Code" class="method-signature"
-            onclick="popupCode('Client.src/M000026.html');return false;">
-          <span class="method-name">request_status</span><span class="method-args">(identifier, global, async=false)</span>
+          <a href="Client.src/M000052.html" target="Code" class="method-signature"
+            onclick="popupCode('Client.src/M000052.html');return false;">
+          <span class="method-name">remove_request</span><span class="method-args">(message)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Remove a persistent request from the node. Call this once you&#8217;ve
+finished with a request.
+</p>
+        </div>
+      </div>
+
+      <div id="method-M000049" class="method-detail">
+        <a name="M000049"></a>
+
+        <div class="method-heading">
+          <a href="Client.src/M000049.html" target="Code" class="method-signature"
+            onclick="popupCode('Client.src/M000049.html');return false;">
+          <span class="method-name">request_status</span><span class="method-args">(identifier, global, only_data=true, block=true, &amp;callback)</span>
           </a>
         </div>
       
         <div class="method-description">
           <p>
 Get the request status for a persistent request. Not useful in synchronous
-systems.
+systems. This will output some PersistentGet/PersistentPut requests, which
+don&#8217;t invoke callbacks, SimpleProgress if Verbosity=1, DataFound for
+all GET requests and AllData if ReturnType=direct
 </p>
 <p>
-Any replies will be directed to the async message&#8217;s callback
+Any replies will be directed to the async message&#8217;s callback.
+</p>
+        </div>
+      </div>
+
+      <div id="method-M000053" class="method-detail">
+        <a name="M000053"></a>
+
+        <div class="method-heading">
+          <a href="Client.src/M000053.html" target="Code" class="method-signature"
+            onclick="popupCode('Client.src/M000053.html');return false;">
+          <span class="method-name">unknown_message</span><span class="method-args">(&amp;callback)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+        </div>
+      </div>
+
+      <div id="method-M000050" class="method-detail">
+        <a name="M000050"></a>
+
+        <div class="method-heading">
+          <a href="Client.src/M000050.html" target="Code" class="method-signature"
+            onclick="popupCode('Client.src/M000050.html');return false;">
+          <span class="method-name">watch_global</span><span class="method-args">(enabled=true, verbosity=1)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Enable global queue watching. This isn&#8217;t of much use until I
+implement a global callback for unknown messages.
 </p>
         </div>
       </div>

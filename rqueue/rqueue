@@ -1,145 +1,43 @@
 #!/usr/bin/ruby
+#
+# = RQueue
+# A Freenet utility for managing a global download queue
+#
+# == Usage
+# ./rqueue [options]
+#
+# == Options
+# [--drubybind, -d] The IP address and port to bind to, eg 0.0.0.0:9876 for all hosts, default is 127.0.0.1:9876
+# [--web, -w] Start the web server, optionally takes an argument for the port to listen on, default 9877
+require 'getoptlong'
 require 'drb'
-require 'erb'
-require 'thread'
-require 'webrick'
-require 'cgi'
 require '../freenet'
-include WEBrick
+require 'rdoc/usage'
+require 'queue_server'
+require 'web_server'
 
-# DRuby server
-class QueueServer
-  def initialize
-    @client = Freenet::FCP::Client.new
-    @client.watch_global
-    @status = {}
-    @status_mutex = Mutex.new
-  end
-  
-  # Add URIs to the queue. Takes a variable argument list, each argument should be one URI. Returns the list
-  # of URIs actually added.
-  def add_uris(*args)
-    queued = []
-    args.each do |uri|
-      begin
-        next if uri == ''
-        @client.get(uri, false, 'Persistence'=>'reboot', 'Global'=>'true', 'Verbosity'=>'1') do |status, request, response|
-          case status
-          when :failed
-            @status_mutex.lock
-            @status[request.items['URI']][:status] = 'Failed'
-            @status_mutex.unlock
-          when :progress
-            @status_mutex.lock
-            data = @status[request.items['URI']]
-            data[:total] = request.items['Total']
-            data[:required] = request.items['Required']
-            data[:failed] = request.items['Failed']
-            data[:fatally_failed] = request.items['FatallyFailed']
-            data[:succeeded] = request.items['Succeeded']
-            data[:finalised] = request.items['Finalized']
-            data[:content_type] = response.content_type
-            @status_mutex.unlock
-          when :found
-            @status_mutex.lock
-            @status[request.items['URI']][:status] = 'Data Found'
-            @status_mutex.unlock
-          when :finished
-            @status_mutex.lock
-            @status[request.items['URI']][:status] = 'Finished'
-            @status[request.items['URI']][:data] = response.data
-            @status[request.items['URI']][:content_type] = response.content_type
-            @status_mutex.unlock
-            @client.remove_request(request)
-          end
-        end
-        queued << uri
-        @status_mutex.lock
-        @status[uri] = {:status=>:started, :data=>nil, :total=>0, :required=>0, :failed=>0, :fatally_failed=>0,
-                        :succeeded=>0, :finalised=>false, :content_type=>''}
-        @status_mutex.unlock
-      rescue Freenet::URIError
-      end
-    end
-    queued
-  end
 
-  # Get a list of all URIs and their status, a hash in the format:
-  #   uri => {:status=>(:started, 'Failed', 'Data Found', 'Finished), :data=>nil or file data, :total=># of split file blocks,
-  #   :failed=>Blocks failed, :fatally_failed=>Blocks that cannot be retrieved, :succeeded=>Blocks downloaded,
-  #   :finalised=>True if the block count is final, false if it may change, :content_type=>data's type}
-  def status
-    @status_mutex.lock
-    s = @status.dup
-    @status_mutex.unlock
-    s
-  end
-  
-  # Remove the URI from the queue.
-  def remove(uri)
-    @status_mutex.lock
-    if @status[uri]
-      @client.remove_request(@status[uri]) if @status[uri][:status] != 'Finished'
-      @status.delete(uri)
-    end
-    @status_mutex.unlock
-    true
+opts = GetoptLong.new(
+  ['--web', '-w', GetoptLong::OPTIONAL_ARGUMENT],
+  ['--drubybind', '-d', GetoptLong::NO_ARGUMENT],
+  ['--help', '-h', GetoptLong::NO_ARGUMENT]
+)
+
+druby_bind = '127.0.0.1:9876'
+web = nil
+opts.each do |type, value|
+  case type
+  when '--drubybind': druby_bind = value
+  when '--web'
+    web = value || 9877
+    web = 9877 if value == ''
+  when '--help'
+    RDoc::usage
+    exit 0
   end
 end
 
-class QueueWeb < HTTPServlet::AbstractServlet
-  def initialize(server)
-    super(server)
-    DRb.start_service()
-    @drb = DRbObject.new(nil, 'druby://localhost:9876')
-    File.open('templates/index.rhtml') do |f|
-      @template = ERB.new(f.read, nil, '-')
-    end
-  end
-  
-  def do_GET(req, res)
-    case req.path
-    when '/download'
-      params = CGI::parse(req.query_string)
-      status = @drb.status
-      item = status[params['uri'][0]]
-      res['Content-Type'] = item[:content_type] if item[:content_type] != ''
-      res.body = item[:data]
-    when '/remove'
-      params = CGI::parse(req.query_string)
-      @drb.remove(params['uri'][0])
-      res.status = 302
-      res['Location'] = '/'
-    else
-      res['Content-Type'] = 'text/html'
-      @status = @drb.status
-      res.body = @template.result(binding)
-    end
-  end
-  
-  def do_POST(req, res)
-    case req.path
-    when '/add_uris'
-      params = CGI::parse(req.body)
-      params['uris'].each do |uris|
-        @drb.add_uris(*(uris.split(/\r|\n/)))
-      end
-      res.status = 302
-      res['Location'] = '/'
-    else
-    end
-  end
-end
-
-server = QueueServer.new
-DRb.start_service('druby://localhost:9876', server)
-
-s = HTTPServer.new(:Port=>9877)
-s.mount('/', QueueWeb)
-trap("INT") do
-  s.shutdown
-  DRb.stop_service
-end
-s.start
+QueueServer.start_server(druby_bind)
+QueueWeb.start_server(web) if web
 
 DRb.thread.join if DRb.thread

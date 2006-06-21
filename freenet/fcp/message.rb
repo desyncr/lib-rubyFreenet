@@ -14,7 +14,7 @@ module Freenet
     # [retries] The number of retries that have happened in case of DataNotFound. The hard limit is five at the moment.
     class Message
       attr_reader :type, :data, :items, :identifier
-      attr_accessor :callback, :load_only, :response, :data_found, :content_type, :retries, :timeout, :added
+      attr_accessor :callback, :load_only, :response, :data_found, :content_type, :retries, :timeout, :added, :request
 
       # [type] The FCP message type
       # [data] Any data to send with the message
@@ -109,11 +109,11 @@ module Freenet
         when 'ProtocolError': :error
         when 'DataFound': :found
         when 'GetFailed'
-          if message.items['RedirectURI']: :redirect
-          elsif message.items['Fatal'] == 'false'
-            case message.items['Code']
+          if items['RedirectURI']: :redirect
+          elsif items['Fatal'] == 'false'
+            case items['Code']
             when '15' # Node overloaded. Wait then re-request. We can re-use the ID as GetFailed removes the ID from FRED
-              if original_message.retries < 5: :retrying
+              if @request.retries < 5: :retrying
               else :failed
               end
             else :failed

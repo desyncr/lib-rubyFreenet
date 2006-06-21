@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+  <title>save_sites (Freenet::Site)</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <link rel="stylesheet" href="../../.././rdoc-style.css" type="text/css" media="screen" />
+</head>
+<body class="standalone-code">
+  <pre><span class="ruby-comment cmt"># File rsite/rsite.rb, line 16</span>
+    <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">save_sites</span>(<span class="ruby-identifier">sites</span>)
+      <span class="ruby-identifier">sites</span> = <span class="ruby-identifier">sites</span>.<span class="ruby-identifier">collect</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">s</span><span class="ruby-operator">|</span>
+        <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">s</span>.<span class="ruby-identifier">respond_to?</span> <span class="ruby-identifier">:to_hash</span>
+          <span class="ruby-identifier">s</span>.<span class="ruby-identifier">to_hash</span> 
+        <span class="ruby-keyword kw">else</span>
+          <span class="ruby-identifier">s</span>
+        <span class="ruby-keyword kw">end</span>
+      <span class="ruby-keyword kw">end</span>
+      <span class="ruby-constant">File</span>.<span class="ruby-identifier">open</span>(<span class="ruby-constant">STORE_PATH</span>, <span class="ruby-value str">'w'</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">f</span><span class="ruby-operator">|</span>
+        <span class="ruby-identifier">f</span>.<span class="ruby-identifier">flock</span>(<span class="ruby-constant">File</span><span class="ruby-operator">::</span><span class="ruby-constant">LOCK_EX</span>)
+        <span class="ruby-constant">YAML</span>.<span class="ruby-identifier">dump</span>(<span class="ruby-identifier">sites</span>, <span class="ruby-identifier">f</span>)
+        <span class="ruby-identifier">f</span>.<span class="ruby-identifier">flock</span>(<span class="ruby-constant">File</span><span class="ruby-operator">::</span><span class="ruby-constant">LOCK_UN</span>)
+      <span class="ruby-keyword kw">end</span>
+    <span class="ruby-keyword kw">end</span></pre>
+</body>
+</html>

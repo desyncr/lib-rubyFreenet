@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+  <title>uri (Freenet::URI)</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <link rel="stylesheet" href="../../.././rdoc-style.css" type="text/css" media="screen" />
+</head>
+<body class="standalone-code">
+  <pre><span class="ruby-comment cmt"># File freenet/uri.rb, line 88</span>
+    <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">uri</span>
+      <span class="ruby-keyword kw">case</span> <span class="ruby-ivar">@type</span>
+      <span class="ruby-keyword kw">when</span> <span class="ruby-value str">'KSK'</span>
+        <span class="ruby-node">&quot;#{@type}@#{@key}&quot;</span>
+      <span class="ruby-keyword kw">when</span> <span class="ruby-value str">'CHK'</span>
+        <span class="ruby-node">&quot;#{@type}@#{@key}/#{@path}&quot;</span>
+      <span class="ruby-keyword kw">when</span> <span class="ruby-value str">'USK'</span>
+        <span class="ruby-node">&quot;#{@type}@#{@key}/#{@name}/#{@version.to_s}/#{@path}#{&quot;?#{@query_string}&quot; if @query_string}#{&quot;##{@anchor}&quot; if @anchor}&quot;</span>
+      <span class="ruby-keyword kw">when</span> <span class="ruby-value str">'SSK'</span>
+        <span class="ruby-node">&quot;#{@type}@#{@key}/#{@name}#{'-'+@version.to_s if @version}/#{@path}#{&quot;?#{@query_string}&quot; if @query_string}#{&quot;##{@anchor}&quot; if @anchor}&quot;</span>
+      <span class="ruby-keyword kw">end</span>
+    <span class="ruby-keyword kw">end</span></pre>
+</body>
+</html>

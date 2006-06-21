@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+  <title>add_uris (QueueServer)</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <link rel="stylesheet" href="../.././rdoc-style.css" type="text/css" media="screen" />
+</head>
+<body class="standalone-code">
+  <pre><span class="ruby-comment cmt"># File rqueue/queue_server.rb, line 21</span>
+  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">add_uris</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">args</span>)
+    <span class="ruby-identifier">queued</span> = []
+    <span class="ruby-identifier">args</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">uri</span><span class="ruby-operator">|</span>
+      <span class="ruby-keyword kw">begin</span>
+        <span class="ruby-keyword kw">next</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">uri</span> <span class="ruby-operator">==</span> <span class="ruby-value str">''</span>
+        <span class="ruby-keyword kw">begin</span>
+          <span class="ruby-identifier">new_uri</span> = <span class="ruby-constant">Freenet</span><span class="ruby-operator">::</span><span class="ruby-constant">URI</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">uri</span>)
+        <span class="ruby-keyword kw">rescue</span>
+          <span class="ruby-identifier">puts</span> <span class="ruby-value str">'bad URI'</span>
+          <span class="ruby-keyword kw">next</span>
+        <span class="ruby-keyword kw">end</span>
+        <span class="ruby-ivar">@client</span>.<span class="ruby-identifier">get</span>(<span class="ruby-identifier">uri</span>, <span class="ruby-keyword kw">false</span>, <span class="ruby-value str">'Persistence'</span>=<span class="ruby-operator">&gt;</span><span class="ruby-value str">'reboot'</span>, <span class="ruby-value str">'Global'</span>=<span class="ruby-operator">&gt;</span><span class="ruby-value str">'true'</span>, <span class="ruby-value str">'Verbosity'</span>=<span class="ruby-operator">&gt;</span><span class="ruby-value str">'1'</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">status</span>, <span class="ruby-identifier">request</span>, <span class="ruby-identifier">response</span><span class="ruby-operator">|</span>
+          <span class="ruby-keyword kw">case</span> <span class="ruby-identifier">status</span>
+          <span class="ruby-keyword kw">when</span> <span class="ruby-identifier">:failed</span>
+            <span class="ruby-ivar">@status_mutex</span>.<span class="ruby-identifier">lock</span>
+            <span class="ruby-ivar">@status</span>[<span class="ruby-identifier">request</span>.<span class="ruby-identifier">items</span>[<span class="ruby-value str">'URI'</span>]][<span class="ruby-identifier">:status</span>] = <span class="ruby-value str">'Failed'</span>
+            <span class="ruby-ivar">@status_mutex</span>.<span class="ruby-identifier">unlock</span>
+          <span class="ruby-keyword kw">when</span> <span class="ruby-identifier">:progress</span>
+            <span class="ruby-ivar">@status_mutex</span>.<span class="ruby-identifier">lock</span>
+            <span class="ruby-identifier">data</span> = <span class="ruby-ivar">@status</span>[<span class="ruby-identifier">request</span>.<span class="ruby-identifier">items</span>[<span class="ruby-value str">'URI'</span>]]
+            <span class="ruby-identifier">data</span>[<span class="ruby-identifier">:total</span>] = <span class="ruby-identifier">response</span>.<span class="ruby-identifier">items</span>[<span class="ruby-value str">'Total'</span>]
+            <span class="ruby-identifier">data</span>[<span class="ruby-identifier">:required</span>] = <span class="ruby-identifier">response</span>.<span class="ruby-identifier">items</span>[<span class="ruby-value str">'Required'</span>]
+            <span class="ruby-identifier">data</span>[<span class="ruby-identifier">:failed</span>] = <span class="ruby-identifier">response</span>.<span class="ruby-identifier">items</span>[<span class="ruby-value str">'Failed'</span>]
+            <span class="ruby-identifier">data</span>[<span class="ruby-identifier">:fatally_failed</span>] = <span class="ruby-identifier">response</span>.<span class="ruby-identifier">items</span>[<span class="ruby-value str">'FatallyFailed'</span>]
+            <span class="ruby-identifier">data</span>[<span class="ruby-identifier">:succeeded</span>] = <span class="ruby-identifier">response</span>.<span class="ruby-identifier">items</span>[<span class="ruby-value str">'Succeeded'</span>]
+            <span class="ruby-identifier">data</span>[<span class="ruby-identifier">:finalised</span>] = <span class="ruby-identifier">response</span>.<span class="ruby-identifier">items</span>[<span class="ruby-value str">'Finalized'</span>]
+            <span class="ruby-identifier">data</span>[<span class="ruby-identifier">:content_type</span>] = <span class="ruby-identifier">response</span>.<span class="ruby-identifier">content_type</span>
+            <span class="ruby-ivar">@status_mutex</span>.<span class="ruby-identifier">unlock</span>
+          <span class="ruby-keyword kw">when</span> <span class="ruby-identifier">:found</span>
+            <span class="ruby-ivar">@status_mutex</span>.<span class="ruby-identifier">lock</span>
+            <span class="ruby-ivar">@status</span>[<span class="ruby-identifier">request</span>.<span class="ruby-identifier">items</span>[<span class="ruby-value str">'URI'</span>]][<span class="ruby-identifier">:status</span>] = <span class="ruby-value str">'Data Found'</span>
+            <span class="ruby-ivar">@status_mutex</span>.<span class="ruby-identifier">unlock</span>
+          <span class="ruby-keyword kw">when</span> <span class="ruby-identifier">:finished</span>
+            <span class="ruby-ivar">@status_mutex</span>.<span class="ruby-identifier">lock</span>
+            <span class="ruby-ivar">@status</span>[<span class="ruby-identifier">request</span>.<span class="ruby-identifier">items</span>[<span class="ruby-value str">'URI'</span>]][<span class="ruby-identifier">:status</span>] = <span class="ruby-value str">'Finished'</span>
+            <span class="ruby-ivar">@status</span>[<span class="ruby-identifier">request</span>.<span class="ruby-identifier">items</span>[<span class="ruby-value str">'URI'</span>]][<span class="ruby-identifier">:data</span>] = <span class="ruby-identifier">response</span>.<span class="ruby-identifier">data</span>
+            <span class="ruby-ivar">@status</span>[<span class="ruby-identifier">request</span>.<span class="ruby-identifier">items</span>[<span class="ruby-value str">'URI'</span>]][<span class="ruby-identifier">:content_type</span>] = <span class="ruby-identifier">response</span>.<span class="ruby-identifier">content_type</span>
+            <span class="ruby-ivar">@status_mutex</span>.<span class="ruby-identifier">unlock</span>
+            <span class="ruby-ivar">@client</span>.<span class="ruby-identifier">remove_request</span>(<span class="ruby-identifier">request</span>)
+          <span class="ruby-keyword kw">end</span>
+        <span class="ruby-keyword kw">end</span>
+        <span class="ruby-identifier">queued</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">uri</span>
+        <span class="ruby-ivar">@status_mutex</span>.<span class="ruby-identifier">lock</span>
+        <span class="ruby-identifier">puts</span> <span class="ruby-value str">'here'</span>
+        <span class="ruby-identifier">filename</span> = <span class="ruby-identifier">new_uri</span>.<span class="ruby-identifier">path</span>.<span class="ruby-identifier">gsub</span>(<span class="ruby-value str">'/'</span>,<span class="ruby-value str">'_'</span>)
+        <span class="ruby-identifier">puts</span> <span class="ruby-identifier">filename</span>
+        <span class="ruby-ivar">@status</span>[<span class="ruby-identifier">uri</span>] = {<span class="ruby-identifier">:status=</span><span class="ruby-operator">&gt;</span><span class="ruby-identifier">:started</span>, <span class="ruby-identifier">:data=</span><span class="ruby-operator">&gt;</span><span class="ruby-keyword kw">nil</span>, <span class="ruby-identifier">:total=</span><span class="ruby-operator">&gt;</span><span class="ruby-value">0</span>, <span class="ruby-identifier">:required=</span><span class="ruby-operator">&gt;</span><span class="ruby-value">0</span>, <span class="ruby-identifier">:failed=</span><span class="ruby-operator">&gt;</span><span class="ruby-value">0</span>, <span class="ruby-identifier">:fatally_failed=</span><span class="ruby-operator">&gt;</span><span class="ruby-value">0</span>,
+                        <span class="ruby-identifier">:succeeded=</span><span class="ruby-operator">&gt;</span><span class="ruby-value">0</span>, <span class="ruby-identifier">:finalised=</span><span class="ruby-operator">&gt;</span><span class="ruby-keyword kw">false</span>, <span class="ruby-identifier">:content_type=</span><span class="ruby-operator">&gt;</span><span class="ruby-value str">''</span>, <span class="ruby-identifier">:filename=</span><span class="ruby-operator">&gt;</span><span class="ruby-identifier">filename</span>}
+        <span class="ruby-ivar">@status_mutex</span>.<span class="ruby-identifier">unlock</span>
+      <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">Freenet</span><span class="ruby-operator">::</span><span class="ruby-constant">URIError</span>
+      <span class="ruby-keyword kw">end</span>
+    <span class="ruby-keyword kw">end</span>
+    <span class="ruby-identifier">queued</span>
+  <span class="ruby-keyword kw">end</span></pre>
+</body>
+</html>

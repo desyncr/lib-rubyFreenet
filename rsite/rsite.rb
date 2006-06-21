@@ -59,6 +59,7 @@ module Freenet
     
     def connect
       @client = Freenet::FCP::Client.new()
+      @client.watch_global
     end
     
     def disconnect
@@ -82,11 +83,21 @@ module Freenet
       generate_key unless @keys
       @uri ||= Freenet::URI.new(@keys[0])
       @uri.type = @type
-      @uri.name = "/#{@name}"
+      @uri.name = "#{@name}"
       @uri.version ||= @version
       @uri.version += 1
       @last_update = File.mtime(path)
-      uri = @client.putdir(@uri, path, false, 'Verbosity'=>'1')
+      uri = @client.putdir(@uri, path, true, 'Verbosity'=>'1', 'Global'=>true, 'Persistence'=>'reboot') do |status, request, response|
+        case status
+        when :finished
+          puts "Finished: #{response.items['URI']}"
+          raise RequestFinished.new
+        when :progress
+          puts "Total: #{response.items['Total']}, Succeeded: #{response.items['Succeeded']}, Failed: #{response.items['Failed']}"
+        when :failed
+          puts "Failed! #{response.items['ExtraDescription']}"
+        end
+      end
       uri
     end
     

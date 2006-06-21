@@ -337,6 +337,7 @@ module Freenet
             rescue RequestFinished => e
               message.response.unlock
               message.unlock
+              break
             end
           end
         end
@@ -429,6 +430,7 @@ module Freenet
           log(INFO, "#{message.identifier}: recieved #{message.type}")
           original_message = @messages[message.identifier]
           if original_message
+            message.request = original_message
             status = message.status
             log(DEBUG, "Message found: #{original_message.type}. #{original_message.callback?} :#{status}")
             original_message.reply = message
