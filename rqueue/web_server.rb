@@ -27,10 +27,12 @@ class QueueWeb < HTTPServlet::AbstractServlet
     case req.path
     when '/download'
       params = CGI::parse(req.query_string)
-      status = @drb.status
-      item = status[params['uri'][0]]
-      res['Content-Type'] = item[:content_type] if item[:content_type] != ''
-      res.body = item[:data]
+      item = @drb.details_for(params['uri'][0])
+      if item
+        res['Content-Type'] = item[:content_type] if item[:content_type] != ''
+      end
+      res['Content-Disposition'] = 'inline; filename="'+item[:filename].to_s+'"'
+      res.body = @drb.data_for(params['uri'][0])
     when '/remove'
       params = CGI::parse(req.query_string)
       @drb.remove(params['uri'][0])

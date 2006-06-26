@@ -434,30 +434,30 @@ module Freenet
             status = message.status
             log(DEBUG, "Message found: #{original_message.type}. #{original_message.callback?} :#{status}")
             original_message.reply = message
+            case status
+            when :found
+             log(INFO, 'Data found, requesting status')
+             original_message.content_type = message.items['Metadata.ContentType']
+             if original_message.items['Persistence'] != 'connection'
+               original_message.data_found = true
+               request_status(original_message.identifier, original_message.items['Global'] || false, false, false)
+             end
+            when :failed
+             if message.items['Fatal'] == 'false'
+               if original_message.retries < 5
+                 original_message.retries += 1
+                 log(DEBUG, "Retrying #{original_message.items['URI']}")
+                 remove_request(original_message)
+                 send(original_message)
+               end
+             end
+            end
+             
             if original_message.callback?
               thread = Thread.new do
                 original_message.lock
                 message.lock
                 original_message.callback(status)
-                case status
-                when :found
-                  log(INFO, 'Data found, requesting status')
-                  original_message.content_type = message.items['Metadata.ContentType']
-                  if original_message.items['Persistence'] != 'connection' and not original_message.data_found
-                    original_message.data_found = true
-                    request_status(original_message.identifier, original_message.items['Global'] || false, true, false)
-                  end
-                when :failed
-                  if message.items['Fatal'] == 'false'
-                    if message.items['Code'] == 15
-                      if original_message.retries < 5
-                        original_message.retries += 1
-                        log(DEBUG, "Retrying #{original_message.items['URI']}")
-                        get(original_message.items['URI'], true, original_message.items)
-                      end
-                    end
-                  end
-                end
                 message.unlock
                 original_message.unlock
               end

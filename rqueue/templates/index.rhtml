@@ -3,6 +3,53 @@
 <html>
 	<head>
 		<title>QueueWeb</title>
+		<style type="text/css" media="screen">
+			body {
+				font-family: 'Verdana','Arial','Geneva',sans-serif;
+				background: rgb(220, 220, 200);
+				padding: 0px;
+				margin: 0px;
+			}
+			
+			h1 {
+				padding: 5px 20px 5px 20px;
+				margin: 0;
+				background: rgb(100, 100, 50);
+				color: rgb(255, 255, 255);
+				border-bottom: 1px solid black;
+			}
+			
+			h2 {
+				margin: 0;
+				padding: 8px 15px;
+			}
+			table {
+				width: 800px;
+				margin: auto;
+				border: 1px solid black;
+				border-collapse: collapse;
+			}
+			
+			td, th {
+				border: 1px solid rgb(150, 150, 100);
+				padding: 2px;
+			}
+			
+			td.progress, th.progress {
+				text-align: center;
+				padding: 3px;
+				width: 105px;
+			}
+			
+			.uri {
+				width: 400px;
+			}
+			
+			form {
+				margin: 10px 5px;
+			}
+		</style>
+		
 	</head>
 	<body>
 		<h1>QueueWeb</h1>
@@ -10,17 +57,22 @@
 		<table>
 			<thead>
 				<tr>
-					<th>URI</th>
+					<th class="uri">URI</th>
 					<th>Status</th>
+					<th class="progress">Progress</th>
 					<th>Download</th>
 					<th>Remove</th>
 				</tr>
 			</thead>
 			<tbody>
-				<% @status.each do |uri, status| %>
+				<% @status.values.sort{|a,b| a[:added] <=> b[:added]}.each do |status| 
+					uri = status[:uri]%>
 				<tr>
-					<td><%=uri%></td>
+					<td><%=status[:uri].gsub(/@[^\/]+/,'@...')%></td>
 					<td><%=status[:status]%></td>
+					<td class="progress">
+						<div style="width:100px; border: 1px solid rgb(50, 50, 100); height: 10px"><div style="width: <%=status[:progress]%>px; background: rgb(50, 50, 100); height: 10px;"></div></div>
+					</td>
 					<td><%if status[:status] == 'Finished'%>
 						<a href="/download?uri=<%=CGI::escape(uri)%>">Download</a>
 					<%end%></td>

@@ -7,8 +7,8 @@
 # ./rqueue [options]
 #
 # == Options
-# [--drubybind, -d] The IP address and port to bind to, eg 0.0.0.0:9876 for all hosts, default is 127.0.0.1:9876
-# [--web, -w] Start the web server, optionally takes an argument for the port to listen on, default 9877
+# [--drubybind, -d ] The IP address and port to bind to, eg 0.0.0.0:9876 for all hosts, default is 127.0.0.1:9876
+# [--web, -w ] Start the web server, optionally takes an argument for the port to listen on, default 9877
 require 'getoptlong'
 require 'drb'
 require '../freenet'
@@ -19,25 +19,33 @@ require 'web_server'
 
 opts = GetoptLong.new(
   ['--web', '-w', GetoptLong::OPTIONAL_ARGUMENT],
-  ['--drubybind', '-d', GetoptLong::NO_ARGUMENT],
-  ['--help', '-h', GetoptLong::NO_ARGUMENT]
+  ['--drubybind', '-d', GetoptLong::OPTIONAL_ARGUMENT],
+  ['--help', '-h', GetoptLong::NO_ARGUMENT],
+  ['--tempdir', '-t', GetoptLong::REQUIRED_ARGUMENT]
 )
 
 druby_bind = '127.0.0.1:9876'
 web = nil
+temp_dir = File.join(File.dirname(__FILE__), 'tmp')
+unless File.exists?(temp_dir)
+  Dir.mkdir(temp_dir)
+end
+
 opts.each do |type, value|
   case type
   when '--drubybind': druby_bind = value
   when '--web'
     web = value || 9877
     web = 9877 if value == ''
+  when '--tempdir': temp_dir = value
   when '--help'
     RDoc::usage
     exit 0
   end
 end
 
-QueueServer.start_server(druby_bind)
+server = QueueServer.start_server(druby_bind)
+server.temp_dir = temp_dir
 QueueWeb.start_server(web) if web
 
 DRb.thread.join if DRb.thread
