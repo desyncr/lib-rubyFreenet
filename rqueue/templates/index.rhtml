@@ -76,9 +76,7 @@
 					<td><%if status[:status] == 'Finished'%>
 						<a href="/download?uri=<%=CGI::escape(uri)%>">Download</a>
 					<%end%></td>
-					<td><%if ['Finished', 'Failed'].include? status[:status] %>
-						<a href="/remove?uri=<%=CGI::escape(uri)%>">Remove</a>
-					<%end%></td>
+					<td><a href="/remove?uri=<%=CGI::escape(uri)%>">Remove</a></td>
 				</tr>
 				<% end %>
 			</tbody>

@@ -14,6 +14,51 @@ class QueueServer
   def initialize
     @client = Freenet::FCP::Client.new
     @client.watch_global
+    @client.all_messages do |status, original_message, message|
+      begin
+        case status
+        when :get
+          uri = message.items['URI']
+          unless @status[uri]
+            @messages[uri] = message
+            new_uri = Freenet::URI.new(uri)
+            filename = new_uri.path.gsub('/','_')
+            @status_mutex.synchronize do
+              @status[uri] = {:uri=>uri, :status=>:started, :data=>nil, :total=>0, :required=>0, :failed=>0, :fatally_failed=>0,
+                              :succeeded=>0, :finalised=>false, :progress=>0, :content_type=>'', :filename=>filename,
+                              :added=>Time.now}
+            end
+          end
+        when :found
+          @status_mutex.synchronize do
+            begin
+              original_message = @messages.values.find{|f| f.identifier == message.identifier}
+              found = false
+              if original_message
+                status = @status[original_message.items['URI']]
+                found = true if status[:found]
+                puts 'sending request status'
+                unless found
+                  @client.request_status(message.identifier, original_message.items['Global'], false, false)
+                end
+                status[:found] = true
+              end
+            rescue => e
+              puts "#{e}\n#{e.backtrace.join("\n")}"
+              puts "#{message}"
+            end
+          end
+          process_message(status, @messages.values.find{|f| f.identifier == message.identifier}, message)
+        else
+          request = @messages.values.find{|f| f.identifier == message.identifier}
+          process_message(status, request, message) if request
+        end
+      rescue => e
+        puts "#{e}\n#{e.backtrace.join("\n")}"
+        puts "#{message}"
+      end
+    end
+    @client.list_persistent_requests
     @status = {}
     @messages = {}
     @status_mutex = Mutex.new
@@ -32,47 +77,7 @@ class QueueServer
           puts 'bad URI'
           next
         end
-        @messages[uri] = @client.get(uri, false, 'Persistence'=>'reboot',
-            'Global'=>'true', 'Verbosity'=>'1', 'MaxRetries'=>'30') do |status, request, response|
-          case status
-          when :failed
-            @status_mutex.lock
-            @status[request.items['URI']][:status] = 'Failed'
-            @client.remove_request(request)
-            p response.items
-            @status_mutex.unlock
-          when :progress
-            @status_mutex.lock
-            data = @status[request.items['URI']]
-            data[:total] = response.items['Total']
-            data[:required] = response.items['Required']
-            data[:failed] = response.items['Failed']
-            data[:fatally_failed] = response.items['FatallyFailed']
-            data[:succeeded] = response.items['Succeeded']
-            data[:finalised] = response.items['Finalized']
-            data[:content_type] = response.content_type
-            data[:progress] = ((response.items['Suceeded'].to_f/response.items['Required'].to_f)*100).ceil
-            @status_mutex.unlock
-          when :found
-            @status_mutex.lock
-            @status[request.items['URI']][:status] = 'Data Found'
-            @status_mutex.unlock
-          when :finished
-            @status_mutex.lock
-            @status[request.items['URI']][:status] = 'Finished'
-            @status[request.items['URI']][:progress] = 100
-            if @temp_dir
-              File.open(File.join(@temp_dir, @status[request.items['URI']][:filename]), 'w') do |file|
-                file.write(response.data)
-              end
-            else
-              @status[request.items['URI']][:data] = response.data
-            end
-            @status[request.items['URI']][:content_type] = response.items['Metadata.ContentType']
-            @status_mutex.unlock
-            @client.remove_request(request)
-          end
-        end
+        @messages[uri] = @client.get(uri, false, 'Persistence'=>'reboot', 'Global'=>'true', 'Verbosity'=>'1', 'MaxRetries'=>'30')
         queued << uri
         @status_mutex.lock
         filename = new_uri.path.gsub('/','_')
@@ -83,6 +88,46 @@ class QueueServer
       end
     end
     queued
+  end
+  
+  def process_message(status, request, response)
+    case status
+    when :failed
+      @status_mutex.lock
+      @status[request.items['URI']][:status] = 'Failed'
+      @client.remove_request(request)
+      p response.items
+      @status_mutex.unlock
+    when :progress
+      @status_mutex.lock
+      data = @status[request.items['URI']]
+      data[:total] = response.items['Total']
+      data[:required] = response.items['Required']
+      data[:failed] = response.items['Failed']
+      data[:fatally_failed] = response.items['FatallyFailed']
+      data[:succeeded] = response.items['Succeeded']
+      data[:finalised] = response.items['Finalized']
+      data[:content_type] = response.items['Metadata.ContentType']
+      data[:progress] = ((response.items['Succeeded'].to_f/response.items['Required'].to_f)*100).ceil
+      @status_mutex.unlock
+    when :found
+      @status_mutex.lock
+      @status[request.items['URI']][:status] = 'Data Found'
+      @status_mutex.unlock
+    when :finished
+      @status_mutex.lock
+      @status[request.items['URI']][:status] = 'Finished'
+      @status[request.items['URI']][:progress] = 100
+      if @temp_dir
+        File.open(File.join(@temp_dir, @status[request.items['URI']][:filename]), 'w') do |file|
+          file.write(response.data)
+        end
+      else
+        @status[request.items['URI']][:data] = response.data
+      end
+      @status[request.items['URI']][:content_type] = response.items['Metadata.ContentType']
+      @status_mutex.unlock
+    end
   end
 
   # Get a list of all URIs and their status, a hash in the format:
@@ -100,7 +145,7 @@ class QueueServer
   def remove(uri)
     @status_mutex.lock
     if @messages[uri]
-      @client.remove_request(@messages[uri]) if @status[uri][:status] != 'Finished'
+      @client.remove_request(@messages[uri])
       if @temp_dir
         status = @status[uri]
         begin

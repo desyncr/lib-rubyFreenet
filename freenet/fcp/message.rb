@@ -7,6 +7,8 @@ module Freenet
     # and thread safety. When a response is received the original FCP::Message gets its response attribute
     # set to the response FCP::Message
     #
+    # Please consider this object immutable. This status will be reinforced later.
+    #
     # Attributes of interest
     # [load_only] Only load in to the message queue, don't actually send. Used when restoring persistent
     #             requests if a client dies
@@ -38,30 +40,8 @@ module Freenet
         end
         
         @callback = callback
-        @mutex = Mutex.new
         @load_only = false
-        @this_thread = nil
         @added = Time.now
-      end
-      
-      # Lock the object. Call before using in async situations
-      def lock(delay = 5)
-        until @mutex.try_lock
-          sleep(delay)
-        end
-      end
-        
-      # Unlock. Call after using asychronously
-      def unlock
-        @mutex.unlock
-      end
-      
-      def locked?
-        @mutex.locked?
-      end
-        
-      def try_lock
-        @mutex.try_lock
       end
       
       # Dispatch the callback. Private to FCP::Client
@@ -76,10 +56,8 @@ module Freenet
       end
 
       # Sets the reply. This is private to FCP::Client
-      def reply=(response)
-        lock
-        @response = response
-        unlock
+      def continue_thread(message)
+        @response = message
         @this_thread.run if @this_thread
       end
 
@@ -98,6 +76,8 @@ module Freenet
       # [:error] An error in the FCP messages occured. This is caused by a bug in rubyFreenet
       def status
         case @type
+        when 'PersistentGet': :get
+        when 'PersistentPut': :put
         when 'SSKKeypair': :keypair
         when 'AllData': :finished
         when 'PersistentGet': :pending

@@ -277,6 +277,15 @@ module Freenet
         block_message(message, block, &callback)
       end
       
+      # Put a 'complex' dir
+      def put_complex_dir(uri, details, block, options, &callback)
+        uri = uri.uri if uri.respond_to? :uri
+        message = Message.new('ClientPutComplexDir', nil, options, callback)
+        log(INFO, "#{message.identifier} Put complex dir queued")
+        send(message)
+        block_message(message, block, &callback)
+      end
+      
       # Get the request status for a persistent request. Not useful in synchronous systems.
       # This will output some PersistentGet/PersistentPut requests, which don't invoke callbacks,
       # SimpleProgress if Verbosity=1, DataFound for all GET requests and AllData if ReturnType=direct
@@ -310,6 +319,11 @@ module Freenet
         send(message)
       end
       
+      def list_persistent_requests()
+        message = Message.new('ListPersistentRequests', nil, nil)
+        send(message)
+      end
+      
       def unknown_message(&callback)
         @unknown_callback = callback
       end
@@ -327,18 +341,8 @@ module Freenet
           message
         else
           loop do
-            begin
-              message.wait_for_response
-              message.lock
-              message.response.lock
-              callback.call(message.status, message, message.response)
-              message.response.unlock
-              message.unlock
-            rescue RequestFinished => e
-              message.response.unlock
-              message.unlock
-              break
-            end
+            message.wait_for_response
+            callback.call(message.status, message, message.response)
           end
         end
       end
@@ -349,10 +353,6 @@ module Freenet
         message = Message.new('ClientHello', nil, 'Name'=>@client_name, 'ExpectedVersion'=>'2.0')
         send(message)
         message.wait_for_response
-        log(DEBUG, "Got NodeHello - Freenet #{message.response.items['Version']}")
-        if message.response.items['Testnet'] == 'true'
-          log(WARN, "Connected to Testnet, you have no anonymity!")
-        end
       end
 
       # Logger utility method. Logger should be thread-safe
@@ -433,15 +433,8 @@ module Freenet
             message.request = original_message
             status = message.status
             log(DEBUG, "Message found: #{original_message.type}. #{original_message.callback?} :#{status}")
-            original_message.reply = message
+            original_message.continue_thread(message)
             case status
-            when :found
-             log(INFO, 'Data found, requesting status')
-             original_message.content_type = message.items['Metadata.ContentType']
-             if original_message.items['Persistence'] != 'connection'
-               original_message.data_found = true
-               request_status(original_message.identifier, original_message.items['Global'] || false, false, false)
-             end
             when :failed
              if message.items['Fatal'] == 'false'
                if original_message.retries < 5
@@ -455,31 +448,24 @@ module Freenet
              
             if original_message.callback?
               thread = Thread.new do
-                original_message.lock
-                message.lock
                 original_message.callback(status)
-                message.unlock
-                original_message.unlock
               end
               @callback_threads << thread
-              if @all_callback
-                thread = Thread.new do
-                  message.lock
-                  status = message.status
-                  @all_callback.call(status, original_message, message)
-                  message.unlock
-                end
-                @callback_threads << thread
+            end
+            if @all_callback
+              thread = Thread.new do
+                status = message.status
+                @all_callback.call(status, original_message, message)
               end
+              @callback_threads << thread
             end
           else
+            log(DEBUG, "Executing unknown callback")
             if @unknown_callback or @all_callback
               thread = Thread.new do
-                message.lock
                 status = message.status
                 @unknown_callback.call(status, message) if @unknown_callback
                 @all_callback.call(status, nil, message) if @all_callback
-                message.unlock
               end
               @callback_threads << thread
             end
