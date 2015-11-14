@@ -95,7 +95,7 @@ module Freenet
       #
       # raises FCPConnectionError if connection fails
       def initialize(client_name=nil, server="127.0.0.1", port=9481, options={})
-        @client_name = client_name || MD5.md5(Time.now.to_s)
+        @client_name = client_name || Digest::MD5.hexdigest(Time.now.to_s)
         @options, @server, @port = options, server, port
         @messages = {}
         @running = false
