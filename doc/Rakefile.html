@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 
-<title>RDoc Documentation</title>
+<title>Rakefile - RDoc Documentation</title>
 
 <script type="text/javascript">
   var rdoc_rel_prefix = "./";
@@ -33,7 +33,6 @@
   </div>
 </div>
 
-
     <div id="search-section" role="search" class="project-section initially-hidden">
   <form action="#" method="get" accept-charset="utf-8">
     <div id="search-field-wrapper">
@@ -50,6 +49,8 @@
 </div>
 
   </div>
+
+  
 
   <div id="project-metadata">
     <div id="fileindex-section" class="nav-section">
@@ -74,65 +75,20 @@
   </ul>
 </div>
 
-    <div id="classindex-section" class="nav-section">
-  <h3>Class and Module Index</h3>
-
-  <ul class="link-list">
-  
-    <li><a href="./ClientTests.html">ClientTests</a>
-  
-    <li><a href="./Freenet.html">Freenet</a>
-  
-    <li><a href="./Freenet/FCP.html">Freenet::FCP</a>
-  
-    <li><a href="./Freenet/FCP/Client.html">Freenet::FCP::Client</a>
-  
-    <li><a href="./Freenet/FCP/FCPConnectionError.html">Freenet::FCP::FCPConnectionError</a>
-  
-    <li><a href="./Freenet/FCP/Message.html">Freenet::FCP::Message</a>
-  
-    <li><a href="./Freenet/FCP/RequestFailed.html">Freenet::FCP::RequestFailed</a>
-  
-    <li><a href="./Freenet/FCP/RequestFinished.html">Freenet::FCP::RequestFinished</a>
-  
-    <li><a href="./Freenet/Site.html">Freenet::Site</a>
-  
-    <li><a href="./Freenet/SiteError.html">Freenet::SiteError</a>
-  
-    <li><a href="./Freenet/URI.html">Freenet::URI</a>
-  
-    <li><a href="./Freenet/URIError.html">Freenet::URIError</a>
-  
-    <li><a href="./Freenet/URIMethodNotImplementedError.html">Freenet::URIMethodNotImplementedError</a>
-  
-    <li><a href="./FreenetPage.html">FreenetPage</a>
-  
-    <li><a href="./FreenetPageError.html">FreenetPageError</a>
-  
-    <li><a href="./GetoptLong.html">GetoptLong</a>
-  
-    <li><a href="./IndexR.html">IndexR</a>
-  
-    <li><a href="./MessageTests.html">MessageTests</a>
-  
-    <li><a href="./Object.html">Object</a>
-  
-    <li><a href="./QueueServer.html">QueueServer</a>
-  
-    <li><a href="./QueueWeb.html">QueueWeb</a>
-  
-    <li><a href="./RDoc.html">RDoc</a>
-  
-    <li><a href="./URITest.html">URITest</a>
-  
-  </ul>
-</div>
-
   </div>
 </nav>
 
-<main role="main">
-<p>This is the API documentation for RDoc Documentation.
+<main role="main" aria-label="Page Rakefile">
+
+<p>require &#39;./freenet&#39; task :test do</p>
+
+<pre class="ruby"><span class="ruby-identifier">require</span> <span class="ruby-string">&#39;test/unit&#39;</span>
+<span class="ruby-identifier">require</span> <span class="ruby-string">&#39;freenet/tests/uri_tests&#39;</span>
+<span class="ruby-identifier">require</span> <span class="ruby-string">&#39;freenet/tests/message_tests&#39;</span>
+<span class="ruby-identifier">require</span> <span class="ruby-string">&#39;freenet/tests/client_tests&#39;</span>
+</pre>
+
+<p>end</p>
 </main>
 
 

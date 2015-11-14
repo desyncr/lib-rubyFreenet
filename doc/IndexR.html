@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<meta charset="UTF-8">
+
+<title>class IndexR - RDoc Documentation</title>
+
+<script type="text/javascript">
+  var rdoc_rel_prefix = "./";
+</script>
+
+<script src="./js/jquery.js"></script>
+<script src="./js/darkfish.js"></script>
+
+<link href="./css/fonts.css" rel="stylesheet">
+<link href="./css/rdoc.css" rel="stylesheet">
+
+
+
+<body id="top" role="document" class="class">
+<nav role="navigation">
+  <div id="project-navigation">
+    <div id="home-section" role="region" title="Quick navigation" class="nav-section">
+  <h2>
+    <a href="./index.html" rel="home">Home</a>
+  </h2>
+
+  <div id="table-of-contents-navigation">
+    <a href="./table_of_contents.html#pages">Pages</a>
+    <a href="./table_of_contents.html#classes">Classes</a>
+    <a href="./table_of_contents.html#methods">Methods</a>
+  </div>
+</div>
+
+    <div id="search-section" role="search" class="project-section initially-hidden">
+  <form action="#" method="get" accept-charset="utf-8">
+    <div id="search-field-wrapper">
+      <input id="search-field" role="combobox" aria-label="Search"
+             aria-autocomplete="list" aria-controls="search-results"
+             type="text" name="search" placeholder="Search" spellcheck="false"
+             title="Type to search, Up and Down to navigate, Enter to load">
+    </div>
+
+    <ul id="search-results" aria-label="Search Results"
+        aria-busy="false" aria-expanded="false"
+        aria-atomic="false" class="initially-hidden"></ul>
+  </form>
+</div>
+
+  </div>
+
+  
+
+  <div id="class-metadata">
+    
+    <div id="parent-class-section" class="nav-section">
+  <h3>Parent</h3>
+
+  
+  <p class="link"><a href="Object.html">Object</a>
+  
+</div>
+
+    
+    
+    <!-- Method Quickref -->
+<div id="method-list-section" class="nav-section">
+  <h3>Methods</h3>
+
+  <ul class="link-list" role="directory">
+    
+    <li ><a href="#method-c-new">::new</a>
+    
+    <li ><a href="#method-i-create_index_page">#create_index_page</a>
+    
+    <li ><a href="#method-i-mine_page">#mine_page</a>
+    
+    <li ><a href="#method-i-process_page">#process_page</a>
+    
+  </ul>
+</div>
+
+  </div>
+</nav>
+
+<main role="main" aria-labelledby="class-IndexR">
+  <h1 id="class-IndexR" class="class">
+    class IndexR
+  </h1>
+
+  <section class="description">
+    
+<p>Example for FreenetR useage.</p>
+
+<p>This is a very simple freenet spider. It starts at a URI, follows all HTML
+links if they have a valid <a href="Freenet.html">Freenet</a> URI and puts
+them on a page. Basic categorization is done based on tag density and META
+keywords and an erb file is called to produce HTML output.</p>
+
+<p>This isn&#39;t a pretty example, but it works.</p>
+
+  </section>
+
+  
+  
+  
+  <section id="5Buntitled-5D" class="documentation-section">
+    
+
+    
+
+    
+    <section class="constants-list">
+      <header>
+        <h3>Constants</h3>
+      </header>
+      <dl>
+      
+        <dt id="RECURSE_DEPTH">RECURSE_DEPTH
+        
+        <dd><p>The depth to follow links to. Remember that the number of pages tends to
+increase rapidly with a single depth increase</p>
+        
+      
+        <dt id="START_PAGES">START_PAGES
+        
+        <dd><p>An array of URIs to start spidering with</p>
+        
+      
+      </dl>
+    </section>
+    
+
+    
+
+    
+     <section id="public-class-5Buntitled-5D-method-details" class="method-section">
+       <header>
+         <h3>Public Class Methods</h3>
+       </header>
+
+    
+      <div id="method-c-new" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">new</span><span
+            class="method-args">()</span>
+          
+          <span class="method-click-advice">click to toggle source</span>
+          
+        </div>
+        
+
+        <div class="method-description">
+          
+          <p>Start spidering</p>
+          
+          
+
+          
+          <div class="method-source-code" id="new-source">
+            <pre><span class="ruby-comment"># File indexr/indexr.rb, line 25</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">initialize</span>
+  <span class="ruby-ivar">@process_threads</span> = [] <span class="ruby-comment"># all the processing threads, so we can cull them</span>
+  <span class="ruby-ivar">@waiting_urls</span> = [] <span class="ruby-comment"># The URIs waiting for response from Freenet</span>
+  <span class="ruby-ivar">@all_uris</span> = [] <span class="ruby-comment"># All URIs checked, to prevent doubleups</span>
+  <span class="ruby-ivar">@pages</span> = {} <span class="ruby-comment"># All page objects created</span>
+  <span class="ruby-ivar">@pages_semaphore</span> = <span class="ruby-constant">Mutex</span>.<span class="ruby-identifier">new</span> <span class="ruby-comment"># Used to sync operations on @pages</span>
+  <span class="ruby-ivar">@mutex</span> = <span class="ruby-constant">Mutex</span>.<span class="ruby-identifier">new</span> <span class="ruby-comment"># Used for any other member variables</span>
+  <span class="ruby-ivar">@mutex</span>.<span class="ruby-identifier">lock</span>
+  
+  <span class="ruby-constant">File</span>.<span class="ruby-identifier">open</span>(<span class="ruby-string">&#39;index.rhtml&#39;</span>) <span class="ruby-keyword">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">f</span><span class="ruby-operator">|</span>
+    <span class="ruby-ivar">@template</span> = <span class="ruby-constant">ERB</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">f</span>.<span class="ruby-identifier">read</span>, <span class="ruby-keyword">nil</span>, <span class="ruby-string">&#39;-&#39;</span>)
+  <span class="ruby-keyword">end</span>
+  <span class="ruby-comment"># Log in to the client. We specify a static client name so only one instance can run</span>
+  <span class="ruby-comment"># at a time.</span>
+  <span class="ruby-ivar">@client</span> = <span class="ruby-constant">Freenet</span><span class="ruby-operator">::</span><span class="ruby-constant">FCP</span><span class="ruby-operator">::</span><span class="ruby-constant">Client</span>.<span class="ruby-identifier">new</span>(<span class="ruby-string">&#39;IndexR&#39;</span>)
+  
+  <span class="ruby-comment"># Start mining the pages</span>
+  <span class="ruby-constant">START_PAGES</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">page</span><span class="ruby-operator">|</span>
+    <span class="ruby-identifier">mine_page</span>(<span class="ruby-constant">Freenet</span><span class="ruby-operator">::</span><span class="ruby-constant">URI</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">page</span>))
+  <span class="ruby-keyword">end</span>
+  <span class="ruby-ivar">@mutex</span>.<span class="ruby-identifier">unlock</span>
+  
+  <span class="ruby-identifier">puts</span> <span class="ruby-string">&#39;Starting processing&#39;</span>
+  <span class="ruby-comment"># This loop culls threads and checks if processing is complete</span>
+  <span class="ruby-identifier">loop</span> <span class="ruby-keyword">do</span>
+    <span class="ruby-ivar">@mutex</span>.<span class="ruby-identifier">lock</span>
+    <span class="ruby-ivar">@process_threads</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">thread</span><span class="ruby-operator">|</span>
+      <span class="ruby-keyword">begin</span>
+        <span class="ruby-keyword">if</span> <span class="ruby-identifier">thread</span>.<span class="ruby-identifier">join</span>(<span class="ruby-value">0.5</span>)
+          <span class="ruby-ivar">@process_threads</span>.<span class="ruby-identifier">delete_if</span> {<span class="ruby-operator">|</span><span class="ruby-identifier">x</span><span class="ruby-operator">|</span> <span class="ruby-identifier">x</span><span class="ruby-operator">==</span><span class="ruby-identifier">thread</span>}
+        <span class="ruby-keyword">end</span>
+      <span class="ruby-keyword">rescue</span> <span class="ruby-constant">Exception</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">e</span> <span class="ruby-comment"># Make sure a mistake in a thread doesn&#39;t kill everything... Could be done better</span>
+        <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;Exception in processing thread: #{e.to_s}&quot;</span>
+        <span class="ruby-ivar">@process_threads</span>.<span class="ruby-identifier">delete_if</span> {<span class="ruby-operator">|</span><span class="ruby-identifier">x</span><span class="ruby-operator">|</span> <span class="ruby-identifier">x</span><span class="ruby-operator">==</span><span class="ruby-identifier">thread</span>}
+      <span class="ruby-keyword">end</span>
+    <span class="ruby-keyword">end</span>
+    <span class="ruby-ivar">@pages_semaphore</span>.<span class="ruby-identifier">synchronize</span> <span class="ruby-keyword">do</span>
+      <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;URIs waiting: #{@waiting_urls.length}, Total Scanned: #{@all_uris.length}.&quot;</span>
+      <span class="ruby-identifier">puts</span> <span class="ruby-ivar">@waiting_urls</span>.<span class="ruby-identifier">join</span>(<span class="ruby-string">&quot;\n&quot;</span>) <span class="ruby-keyword">if</span> <span class="ruby-ivar">@waiting_urls</span>.<span class="ruby-identifier">size</span> <span class="ruby-operator">&lt;</span> <span class="ruby-value">3</span>
+    <span class="ruby-keyword">end</span>
+    <span class="ruby-ivar">@mutex</span>.<span class="ruby-identifier">unlock</span>
+    <span class="ruby-identifier">sleep</span>(<span class="ruby-value">5</span>)
+    <span class="ruby-comment"># If there are no waiting URLs and no processing threads we&#39;re done.</span>
+    <span class="ruby-comment"># We should lock here...</span>
+    <span class="ruby-keyword">break</span> <span class="ruby-keyword">if</span> <span class="ruby-ivar">@process_threads</span>.<span class="ruby-identifier">empty?</span> <span class="ruby-keyword">and</span> <span class="ruby-ivar">@waiting_urls</span>.<span class="ruby-identifier">empty?</span>
+  <span class="ruby-keyword">end</span>
+  <span class="ruby-identifier">puts</span> <span class="ruby-string">&#39;All processing done&#39;</span>
+  <span class="ruby-constant">START_PAGES</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">uri</span><span class="ruby-operator">|</span>
+    <span class="ruby-ivar">@pages</span>[<span class="ruby-identifier">uri</span>].<span class="ruby-identifier">run_rank</span>(<span class="ruby-value">20</span>, <span class="ruby-ivar">@pages</span>)
+  <span class="ruby-keyword">end</span>
+  <span class="ruby-identifier">create_index_page</span> <span class="ruby-comment"># create the page</span>
+  <span class="ruby-identifier">puts</span> <span class="ruby-string">&#39;Disconnecting&#39;</span>
+  <span class="ruby-ivar">@client</span>.<span class="ruby-identifier">disconnect</span> <span class="ruby-comment"># disconnect</span>
+<span class="ruby-keyword">end</span></pre>
+          </div>
+          
+        </div>
+
+        
+
+        
+      </div>
+
+    
+    </section>
+  
+     <section id="public-instance-5Buntitled-5D-method-details" class="method-section">
+       <header>
+         <h3>Public Instance Methods</h3>
+       </header>
+
+    
+      <div id="method-i-create_index_page" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">create_index_page</span><span
+            class="method-args">()</span>
+          
+          <span class="method-click-advice">click to toggle source</span>
+          
+        </div>
+        
+
+        <div class="method-description">
+          
+          <p>Create index page. Sort pages and send to the erb template</p>
+          
+          
+
+          
+          <div class="method-source-code" id="create_index_page-source">
+            <pre><span class="ruby-comment"># File indexr/indexr.rb, line 171</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">create_index_page</span>
+  <span class="ruby-identifier">template</span> = <span class="ruby-keyword">nil</span>
+  <span class="ruby-ivar">@pages_semaphore</span>.<span class="ruby-identifier">synchronize</span> <span class="ruby-keyword">do</span>
+    <span class="ruby-ivar">@pages</span>.<span class="ruby-identifier">delete_if</span> {<span class="ruby-operator">|</span><span class="ruby-identifier">uri</span>, <span class="ruby-identifier">page</span><span class="ruby-operator">|</span> <span class="ruby-identifier">page</span>.<span class="ruby-identifier">nil?</span> }
+    <span class="ruby-ivar">@sorted_pages</span> = <span class="ruby-ivar">@pages</span>.<span class="ruby-identifier">values</span>.<span class="ruby-identifier">sort</span>
+    <span class="ruby-constant">File</span>.<span class="ruby-identifier">open</span>(<span class="ruby-string">&#39;index.html&#39;</span>, <span class="ruby-string">&#39;w&#39;</span>) <span class="ruby-keyword">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">f</span><span class="ruby-operator">|</span>
+      <span class="ruby-identifier">f</span>.<span class="ruby-identifier">write</span>(<span class="ruby-ivar">@template</span>.<span class="ruby-identifier">result</span>(<span class="ruby-identifier">binding</span>))
+    <span class="ruby-keyword">end</span>
+    <span class="ruby-constant">File</span>.<span class="ruby-identifier">open</span>(<span class="ruby-string">&#39;pages_dump.yaml&#39;</span>, <span class="ruby-string">&#39;w&#39;</span>) <span class="ruby-keyword">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">f</span><span class="ruby-operator">|</span>
+      <span class="ruby-identifier">f</span>.<span class="ruby-identifier">write</span>(<span class="ruby-constant">YAML</span>.<span class="ruby-identifier">dump</span>(<span class="ruby-ivar">@pages</span>))
+    <span class="ruby-keyword">end</span>
+  <span class="ruby-keyword">end</span>
+<span class="ruby-keyword">end</span></pre>
+          </div>
+          
+        </div>
+
+        
+
+        
+      </div>
+
+    
+      <div id="method-i-mine_page" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">mine_page</span><span
+            class="method-args">(uri, depth=0)</span>
+          
+          <span class="method-click-advice">click to toggle source</span>
+          
+        </div>
+        
+
+        <div class="method-description">
+          
+          <p>Mine a page. uri is a <a href="Freenet/URI.html">Freenet::URI</a>. depth is
+managed by <a href="IndexR.html#method-i-mine_page">#mine_page</a> to
+ensure that we don&#39;t exceed <a
+href="IndexR.html#RECURSE_DEPTH">RECURSE_DEPTH</a></p>
+          
+          
+
+          
+          <div class="method-source-code" id="mine_page-source">
+            <pre><span class="ruby-comment"># File indexr/indexr.rb, line 82</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">mine_page</span>(<span class="ruby-identifier">uri</span>, <span class="ruby-identifier">depth</span>=<span class="ruby-value">0</span>)
+  <span class="ruby-comment"># Filter out pages we don&#39;t want (images, binaries)</span>
+  <span class="ruby-keyword">case</span> <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">path</span>
+  <span class="ruby-keyword">when</span> <span class="ruby-regexp">/\.html$/</span>, <span class="ruby-regexp">/\.htm$/</span>, <span class="ruby-regexp">/\/$/</span>, <span class="ruby-string">&#39;&#39;</span>, <span class="ruby-keyword">nil</span>
+  <span class="ruby-keyword">when</span> <span class="ruby-regexp">/\./</span>
+    <span class="ruby-keyword">return</span>
+  <span class="ruby-keyword">end</span>
+  
+  <span class="ruby-comment"># Check that we don&#39;t duplicate the page request</span>
+  <span class="ruby-identifier">uri_queued</span> = <span class="ruby-keyword">false</span>
+  <span class="ruby-ivar">@pages_semaphore</span>.<span class="ruby-identifier">synchronize</span> <span class="ruby-keyword">do</span>
+    <span class="ruby-identifier">uri_queued</span> = <span class="ruby-keyword">true</span> <span class="ruby-keyword">if</span> <span class="ruby-ivar">@all_uris</span>.<span class="ruby-identifier">include?</span> <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">uri</span>
+    <span class="ruby-ivar">@waiting_urls</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">uri</span> <span class="ruby-keyword">unless</span> <span class="ruby-identifier">uri_queued</span>
+    <span class="ruby-ivar">@all_uris</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">uri</span> <span class="ruby-keyword">unless</span> <span class="ruby-identifier">uri_queued</span>
+  <span class="ruby-keyword">end</span>
+  <span class="ruby-comment"># If it&#39;s already being checked we stop</span>
+  <span class="ruby-keyword">if</span> <span class="ruby-identifier">uri_queued</span>
+    <span class="ruby-keyword">return</span>
+  <span class="ruby-keyword">end</span>
+  
+  <span class="ruby-comment"># Get the page</span>
+  <span class="ruby-ivar">@client</span>.<span class="ruby-identifier">get</span>(<span class="ruby-identifier">uri</span>.<span class="ruby-identifier">uri</span>, <span class="ruby-keyword">true</span>, <span class="ruby-string">&quot;Persistence&quot;</span>=<span class="ruby-operator">&gt;</span><span class="ruby-string">&#39;connection&#39;</span>,<span class="ruby-string">&#39;PriorityClass&#39;</span>=<span class="ruby-operator">&gt;</span><span class="ruby-value">2</span>) <span class="ruby-keyword">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">status</span>, <span class="ruby-identifier">message</span>, <span class="ruby-identifier">response</span><span class="ruby-operator">|</span>
+    <span class="ruby-ivar">@mutex</span>.<span class="ruby-identifier">lock</span> <span class="ruby-comment"># Lock the object</span>
+    <span class="ruby-keyword">case</span> <span class="ruby-identifier">status</span>
+    <span class="ruby-keyword">when</span> <span class="ruby-value">:finished</span> <span class="ruby-comment"># If we have the data and it&#39;s text/html we process it.</span>
+      <span class="ruby-ivar">@pages_semaphore</span>.<span class="ruby-identifier">synchronize</span> <span class="ruby-keyword">do</span>
+        <span class="ruby-ivar">@waiting_urls</span>.<span class="ruby-identifier">delete_if</span> {<span class="ruby-operator">|</span><span class="ruby-identifier">u</span><span class="ruby-operator">|</span> <span class="ruby-identifier">u</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">uri</span>}
+      <span class="ruby-keyword">end</span>
+      <span class="ruby-identifier">page</span> = <span class="ruby-identifier">response</span>.<span class="ruby-identifier">data</span>
+      <span class="ruby-keyword">if</span> <span class="ruby-identifier">message</span>.<span class="ruby-identifier">content_type</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp">/^text\/html/</span>
+        <span class="ruby-identifier">thread</span> = <span class="ruby-constant">Thread</span>.<span class="ruby-identifier">new</span> <span class="ruby-keyword">do</span> <span class="ruby-comment"># Do it in a new thread, just because.</span>
+          <span class="ruby-keyword">begin</span>
+            <span class="ruby-identifier">process_page</span>(<span class="ruby-identifier">uri</span>, <span class="ruby-identifier">response</span>.<span class="ruby-identifier">data</span>, <span class="ruby-identifier">depth</span>)
+          <span class="ruby-keyword">rescue</span> <span class="ruby-constant">Exception</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">e</span>
+            <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;#{e.to_s}&quot;</span>
+          <span class="ruby-keyword">end</span>
+        <span class="ruby-keyword">end</span>
+        <span class="ruby-ivar">@process_threads</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">thread</span>
+      <span class="ruby-keyword">else</span>
+        <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;Unknown content type: #{message.content_type} URI:#{uri.uri}&quot;</span>
+      <span class="ruby-keyword">end</span>
+    <span class="ruby-keyword">when</span> <span class="ruby-value">:failed</span>, <span class="ruby-value">:error</span>, <span class="ruby-value">:timeout</span> <span class="ruby-comment"># If it failed then we ditch the URI</span>
+      <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;URI failed: #{status} (#{response.items[&#39;ExtraDescription&#39;] if response}): #{uri.uri}&quot;</span>
+      <span class="ruby-ivar">@pages_semaphore</span>.<span class="ruby-identifier">synchronize</span> <span class="ruby-keyword">do</span>
+        <span class="ruby-ivar">@waiting_urls</span>.<span class="ruby-identifier">delete_if</span> {<span class="ruby-operator">|</span><span class="ruby-identifier">u</span><span class="ruby-operator">|</span> <span class="ruby-identifier">u</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">uri</span>}
+      <span class="ruby-keyword">end</span>
+    <span class="ruby-keyword">when</span> <span class="ruby-value">:redirect</span> <span class="ruby-comment"># In case of redirect we issue a new request for it.  </span>
+      <span class="ruby-ivar">@pages_semaphore</span>.<span class="ruby-identifier">synchronize</span> <span class="ruby-keyword">do</span>
+        <span class="ruby-ivar">@waiting_urls</span>.<span class="ruby-identifier">delete_if</span> {<span class="ruby-operator">|</span><span class="ruby-identifier">u</span><span class="ruby-operator">|</span> <span class="ruby-identifier">u</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">uri</span>}
+      <span class="ruby-keyword">end</span>
+      <span class="ruby-ivar">@mutex</span>.<span class="ruby-identifier">unlock</span>
+      <span class="ruby-identifier">mine_page</span>(<span class="ruby-constant">Freenet</span><span class="ruby-operator">::</span><span class="ruby-constant">URI</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">response</span>.<span class="ruby-identifier">items</span>[<span class="ruby-string">&#39;RedirectURI&#39;</span>]), <span class="ruby-identifier">depth</span>)
+      <span class="ruby-ivar">@mutex</span>.<span class="ruby-identifier">lock</span>
+    <span class="ruby-keyword">when</span> <span class="ruby-value">:retrying</span>
+    <span class="ruby-keyword">when</span> <span class="ruby-value">:pending</span>
+    <span class="ruby-keyword">end</span>
+    <span class="ruby-ivar">@mutex</span>.<span class="ruby-identifier">unlock</span>
+  <span class="ruby-keyword">end</span>
+<span class="ruby-keyword">end</span></pre>
+          </div>
+          
+        </div>
+
+        
+
+        
+      </div>
+
+    
+      <div id="method-i-process_page" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">process_page</span><span
+            class="method-args">(uri, page, depth)</span>
+          
+          <span class="method-click-advice">click to toggle source</span>
+          
+        </div>
+        
+
+        <div class="method-description">
+          
+          <p>Pull links out of a page and mine them deeper</p>
+          
+          
+
+          
+          <div class="method-source-code" id="process_page-source">
+            <pre><span class="ruby-comment"># File indexr/indexr.rb, line 143</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">process_page</span>(<span class="ruby-identifier">uri</span>, <span class="ruby-identifier">page</span>, <span class="ruby-identifier">depth</span>)
+  <span class="ruby-keyword">begin</span>
+    <span class="ruby-identifier">page</span> = <span class="ruby-constant">FreenetPage</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">uri</span>.<span class="ruby-identifier">uri</span>, <span class="ruby-identifier">page</span>)
+    <span class="ruby-identifier">page</span>.<span class="ruby-identifier">links</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">link</span><span class="ruby-operator">|</span>
+      <span class="ruby-comment"># We only want to mine freenet pages, not anything that operates directly on FProxy, like</span>
+      <span class="ruby-comment"># add bookmark links</span>
+      <span class="ruby-keyword">begin</span>
+        <span class="ruby-keyword">case</span> <span class="ruby-identifier">link</span>
+        <span class="ruby-keyword">when</span> <span class="ruby-regexp">/\/?([KSU]S|CH)K/</span>
+          <span class="ruby-identifier">mine_page</span>(<span class="ruby-constant">Freenet</span><span class="ruby-operator">::</span><span class="ruby-constant">URI</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">link</span>),<span class="ruby-identifier">depth</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>) <span class="ruby-keyword">unless</span> <span class="ruby-identifier">depth</span> <span class="ruby-operator">==</span> <span class="ruby-constant">RECURSE_DEPTH</span>
+        <span class="ruby-keyword">when</span> <span class="ruby-regexp">/^\//</span>
+        <span class="ruby-keyword">when</span> <span class="ruby-regexp">/^\?/</span>
+        <span class="ruby-keyword">else</span>
+          <span class="ruby-identifier">mine_page</span>(<span class="ruby-constant">Freenet</span><span class="ruby-operator">::</span><span class="ruby-constant">URI</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">link</span>),<span class="ruby-identifier">depth</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>) <span class="ruby-keyword">unless</span> <span class="ruby-identifier">depth</span> <span class="ruby-operator">==</span> <span class="ruby-constant">RECURSE_DEPTH</span>
+        <span class="ruby-keyword">end</span>
+      <span class="ruby-keyword">rescue</span> <span class="ruby-constant">Freenet</span><span class="ruby-operator">::</span><span class="ruby-constant">URIError</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">e</span>
+        <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;Bad URI: #{link}&quot;</span>
+      <span class="ruby-keyword">end</span>
+    <span class="ruby-keyword">end</span>
+    <span class="ruby-ivar">@pages_semaphore</span>.<span class="ruby-identifier">synchronize</span> <span class="ruby-keyword">do</span>
+      <span class="ruby-ivar">@pages</span>[<span class="ruby-identifier">uri</span>.<span class="ruby-identifier">uri</span>] = <span class="ruby-identifier">page</span>
+    <span class="ruby-keyword">end</span>
+  <span class="ruby-keyword">rescue</span> <span class="ruby-constant">Exception</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">e</span> <span class="ruby-comment"># This is normally a bad URI or something that&#39;s not HTML</span>
+    <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;Processing Exception: #{e.to_s}&quot;</span>
+  <span class="ruby-keyword">end</span>
+<span class="ruby-keyword">end</span></pre>
+          </div>
+          
+        </div>
+
+        
+
+        
+      </div>
+
+    
+    </section>
+  
+  </section>
+</main>
+
+
+<footer id="validator-badges" role="contentinfo">
+  <p><a href="http://validator.w3.org/check/referer">Validate</a>
+  <p>Generated by <a href="http://docs.seattlerb.org/rdoc/">RDoc</a> 4.2.0.
+  <p>Based on <a href="http://deveiate.org/projects/Darkfish-RDoc/">Darkfish</a> by <a href="http://deveiate.org">Michael Granger</a>.
+</footer>
+

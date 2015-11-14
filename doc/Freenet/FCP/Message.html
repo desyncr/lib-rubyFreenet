@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<meta charset="UTF-8">
+
+<title>class Freenet::FCP::Message - RDoc Documentation</title>
+
+<script type="text/javascript">
+  var rdoc_rel_prefix = "../../";
+</script>
+
+<script src="../../js/jquery.js"></script>
+<script src="../../js/darkfish.js"></script>
+
+<link href="../../css/fonts.css" rel="stylesheet">
+<link href="../../css/rdoc.css" rel="stylesheet">
+
+
+
+<body id="top" role="document" class="class">
+<nav role="navigation">
+  <div id="project-navigation">
+    <div id="home-section" role="region" title="Quick navigation" class="nav-section">
+  <h2>
+    <a href="../../index.html" rel="home">Home</a>
+  </h2>
+
+  <div id="table-of-contents-navigation">
+    <a href="../../table_of_contents.html#pages">Pages</a>
+    <a href="../../table_of_contents.html#classes">Classes</a>
+    <a href="../../table_of_contents.html#methods">Methods</a>
+  </div>
+</div>
+
+    <div id="search-section" role="search" class="project-section initially-hidden">
+  <form action="#" method="get" accept-charset="utf-8">
+    <div id="search-field-wrapper">
+      <input id="search-field" role="combobox" aria-label="Search"
+             aria-autocomplete="list" aria-controls="search-results"
+             type="text" name="search" placeholder="Search" spellcheck="false"
+             title="Type to search, Up and Down to navigate, Enter to load">
+    </div>
+
+    <ul id="search-results" aria-label="Search Results"
+        aria-busy="false" aria-expanded="false"
+        aria-atomic="false" class="initially-hidden"></ul>
+  </form>
+</div>
+
+  </div>
+
+  
+
+  <div id="class-metadata">
+    
+    <div id="parent-class-section" class="nav-section">
+  <h3>Parent</h3>
+
+  
+  <p class="link"><a href="../../Object.html">Object</a>
+  
+</div>
+
+    
+    
+    <!-- Method Quickref -->
+<div id="method-list-section" class="nav-section">
+  <h3>Methods</h3>
+
+  <ul class="link-list" role="directory">
+    
+    <li ><a href="#method-c-new">::new</a>
+    
+    <li ><a href="#method-c-read">::read</a>
+    
+    <li ><a href="#method-i-callback-3F">#callback?</a>
+    
+    <li ><a href="#method-i-continue_thread">#continue_thread</a>
+    
+    <li ><a href="#method-i-status">#status</a>
+    
+    <li ><a href="#method-i-wait_for_response">#wait_for_response</a>
+    
+    <li ><a href="#method-i-write">#write</a>
+    
+  </ul>
+</div>
+
+  </div>
+</nav>
+
+<main role="main" aria-labelledby="class-Freenet::FCP::Message">
+  <h1 id="class-Freenet::FCP::Message" class="class">
+    class Freenet::FCP::Message
+  </h1>
+
+  <section class="description">
+    
+<p>An <a href="Message.html">FCP::Message</a> represents a communication
+between the server and client. It handles basic information and thread
+safety. When a response is received the original <a
+href="Message.html">FCP::Message</a> gets its response attribute set to the
+response <a href="Message.html">FCP::Message</a></p>
+
+<p>Please consider this object immutable. This status will be reinforced
+later.</p>
+
+<p>Attributes of interest</p>
+<dl class="rdoc-list label-list"><dt><a href="Message.html#attribute-i-load_only">#load_only</a>
+<dd>
+<p>Only load in to the message queue, don&#39;t actually send. Used when
+restoring persistent requests if a client dies</p>
+</dd><dt><a href="Message.html#attribute-i-content_type">#content_type</a>
+<dd>
+<p>The content type of the data. Set automatically on response, set manually
+when inserting.</p>
+</dd><dt>retries
+<dd>
+<p>The number of retries that have happened in case of DataNotFound. The hard
+limit is five at the moment.</p>
+</dd></dl>
+
+  </section>
+
+  
+  
+  
+  <section id="5Buntitled-5D" class="documentation-section">
+    
+
+    
+
+    
+
+    
+    <section class="attribute-method-details" class="method-section">
+      <header>
+        <h3>Attributes</h3>
+      </header>
+
+      
+      <div id="attribute-i-added" class="method-detail">
+        <div class="method-heading attribute-method-heading">
+          <span class="method-name">added</span><span
+            class="attribute-access-type">[RW]</span>
+        </div>
+
+        <div class="method-description">
+        
+        
+        
+        </div>
+      </div>
+      
+      <div id="attribute-i-callback" class="method-detail">
+        <div class="method-heading attribute-method-heading">
+          <span class="method-name">callback</span><span
+            class="attribute-access-type">[RW]</span>
+        </div>
+
+        <div class="method-description">
+        
+        
+        
+        </div>
+      </div>
+      
+      <div id="attribute-i-content_type" class="method-detail">
+        <div class="method-heading attribute-method-heading">
+          <span class="method-name">content_type</span><span
+            class="attribute-access-type">[RW]</span>
+        </div>
+
+        <div class="method-description">
+        
+        
+        
+        </div>
+      </div>
+      
+      <div id="attribute-i-data" class="method-detail">
+        <div class="method-heading attribute-method-heading">
+          <span class="method-name">data</span><span
+            class="attribute-access-type">[R]</span>
+        </div>
+
+        <div class="method-description">
+        
+        
+        
+        </div>
+      </div>
+      
+      <div id="attribute-i-data_found" class="method-detail">
+        <div class="method-heading attribute-method-heading">
+          <span class="method-name">data_found</span><span
+            class="attribute-access-type">[RW]</span>
+        </div>
+
+        <div class="method-description">
+        
+        
+        
+        </div>
+      </div>
+      
+      <div id="attribute-i-identifier" class="method-detail">
+        <div class="method-heading attribute-method-heading">
+          <span class="method-name">identifier</span><span
+            class="attribute-access-type">[R]</span>
+        </div>
+
+        <div class="method-description">
+        
+        
+        
+        </div>
+      </div>
+      
+      <div id="attribute-i-items" class="method-detail">
+        <div class="method-heading attribute-method-heading">
+          <span class="method-name">items</span><span
+            class="attribute-access-type">[R]</span>
+        </div>
+
+        <div class="method-description">
+        
+        
+        
+        </div>
+      </div>
+      
+      <div id="attribute-i-load_only" class="method-detail">
+        <div class="method-heading attribute-method-heading">
+          <span class="method-name">load_only</span><span
+            class="attribute-access-type">[RW]</span>
+        </div>
+
+        <div class="method-description">
+        
+        
+        
+        </div>
+      </div>
+      
+      <div id="attribute-i-request" class="method-detail">
+        <div class="method-heading attribute-method-heading">
+          <span class="method-name">request</span><span
+            class="attribute-access-type">[RW]</span>
+        </div>
+
+        <div class="method-description">
+        
+        
+        
+        </div>
+      </div>
+      
+      <div id="attribute-i-response" class="method-detail">
+        <div class="method-heading attribute-method-heading">
+          <span class="method-name">response</span><span
+            class="attribute-access-type">[RW]</span>
+        </div>
+
+        <div class="method-description">
+        
+        
+        
+        </div>
+      </div>
+      
+      <div id="attribute-i-retries" class="method-detail">
+        <div class="method-heading attribute-method-heading">
+          <span class="method-name">retries</span><span
+            class="attribute-access-type">[RW]</span>
+        </div>
+
+        <div class="method-description">
+        
+        
+        
+        </div>
+      </div>
+      
+      <div id="attribute-i-timeout" class="method-detail">
+        <div class="method-heading attribute-method-heading">
+          <span class="method-name">timeout</span><span
+            class="attribute-access-type">[RW]</span>
+        </div>
+
+        <div class="method-description">
+        
+        
+        
+        </div>
+      </div>
+      
+      <div id="attribute-i-type" class="method-detail">
+        <div class="method-heading attribute-method-heading">
+          <span class="method-name">type</span><span
+            class="attribute-access-type">[R]</span>
+        </div>
+
+        <div class="method-description">
+        
+        
+        
+        </div>
+      </div>
+      
+    </section>
+    
+
+    
+     <section id="public-class-5Buntitled-5D-method-details" class="method-section">
+       <header>
+         <h3>Public Class Methods</h3>
+       </header>
+
+    
+      <div id="method-c-new" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">new</span><span
+            class="method-args">(type, data = nil, items = [], callback = nil)</span>
+          
+          <span class="method-click-advice">click to toggle source</span>
+          
+        </div>
+        
+
+        <div class="method-description">
+          
+          <dl class="rdoc-list label-list"><dt>type
+<dd>
+<p>The <a href="../FCP.html">FCP</a> message type</p>
+</dd><dt>data
+<dd>
+<p>Any data to send with the message</p>
+</dd><dt>items
+<dd>
+<p>A hash of message parameters. They vary for different messages, Timeout is
+a special item that sets the timeout in seconds for this message, it
+doesn&#39;t go to the node.</p>
+</dd><dt>callback
+<dd>
+<p>Callback for asynchronous messages</p>
+</dd></dl>
+          
+          
+
+          
+          <div class="method-source-code" id="new-source">
+            <pre><span class="ruby-comment"># File freenet/fcp/message.rb, line 26</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">type</span>, <span class="ruby-identifier">data</span> = <span class="ruby-keyword">nil</span>, <span class="ruby-identifier">items</span> = [], <span class="ruby-identifier">callback</span> = <span class="ruby-keyword">nil</span>)
+  <span class="ruby-ivar">@retries</span> = <span class="ruby-value">0</span>
+  <span class="ruby-ivar">@type</span>, <span class="ruby-ivar">@data</span>, <span class="ruby-ivar">@items</span> = <span class="ruby-identifier">type</span>.<span class="ruby-identifier">to_s</span>, <span class="ruby-identifier">data</span>, <span class="ruby-identifier">items</span>
+  <span class="ruby-ivar">@items</span> = {} <span class="ruby-keyword">unless</span> <span class="ruby-ivar">@items</span>.<span class="ruby-identifier">kind_of?</span> <span class="ruby-constant">Hash</span>
+  <span class="ruby-ivar">@items</span>[<span class="ruby-string">&#39;Identifier&#39;</span>] <span class="ruby-operator">||=</span> <span class="ruby-node">&quot;FCPMessage_#{Digest::MD5.hexdigest(Time.now.to_s)}_#{rand(100000)}&quot;</span>
+  <span class="ruby-ivar">@identifier</span> = <span class="ruby-ivar">@items</span>[<span class="ruby-string">&#39;Identifier&#39;</span>]
+  <span class="ruby-keyword">if</span> [<span class="ruby-string">&#39;ClientHello&#39;</span>,<span class="ruby-string">&#39;NodeHello&#39;</span>].<span class="ruby-identifier">include?</span> <span class="ruby-ivar">@type</span>
+    <span class="ruby-ivar">@identifier</span> = <span class="ruby-string">&#39;ClientHello&#39;</span>
+    <span class="ruby-ivar">@items</span>.<span class="ruby-identifier">delete</span>(<span class="ruby-string">&#39;Identifier&#39;</span>)
+  <span class="ruby-keyword">end</span>
+
+  <span class="ruby-keyword">if</span> <span class="ruby-ivar">@items</span>[<span class="ruby-string">&#39;Timeout&#39;</span>]
+    <span class="ruby-ivar">@timeout</span> = <span class="ruby-ivar">@items</span>[<span class="ruby-string">&#39;Timeout&#39;</span>]
+    <span class="ruby-ivar">@items</span>.<span class="ruby-identifier">delete</span>(<span class="ruby-string">&#39;Timeout&#39;</span>)
+  <span class="ruby-keyword">end</span>
+
+  <span class="ruby-ivar">@callback</span> = <span class="ruby-identifier">callback</span>
+  <span class="ruby-ivar">@load_only</span> = <span class="ruby-keyword">false</span>
+  <span class="ruby-ivar">@added</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>
+<span class="ruby-keyword">end</span></pre>
+          </div>
+          
+        </div>
+
+        
+
+        
+      </div>
+
+    
+      <div id="method-c-read" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">read</span><span
+            class="method-args">(stream)</span>
+          
+          <span class="method-click-advice">click to toggle source</span>
+          
+        </div>
+        
+
+        <div class="method-description">
+          
+          <p>Read from stream and create a new message object</p>
+          
+          
+
+          
+          <div class="method-source-code" id="read-source">
+            <pre><span class="ruby-comment"># File freenet/fcp/message.rb, line 140</span>
+<span class="ruby-keyword">def</span> <span class="ruby-keyword">self</span>.<span class="ruby-identifier">read</span>(<span class="ruby-identifier">stream</span>)
+  <span class="ruby-identifier">items</span> = {}
+  <span class="ruby-identifier">type</span> = <span class="ruby-keyword">nil</span>
+  <span class="ruby-identifier">data</span> = <span class="ruby-keyword">nil</span>
+  <span class="ruby-identifier">loop</span> <span class="ruby-keyword">do</span>
+    <span class="ruby-identifier">line</span> = <span class="ruby-identifier">stream</span>.<span class="ruby-identifier">readline</span>.<span class="ruby-identifier">strip</span>
+    <span class="ruby-keyword">case</span> <span class="ruby-identifier">line</span>
+    <span class="ruby-keyword">when</span> <span class="ruby-string">&quot;End&quot;</span>,<span class="ruby-string">&quot;EndMessage&quot;</span>
+      <span class="ruby-keyword">break</span>
+    <span class="ruby-keyword">when</span> <span class="ruby-regexp">/=/</span>
+      <span class="ruby-identifier">key</span>, <span class="ruby-identifier">value</span> = <span class="ruby-identifier">line</span>.<span class="ruby-identifier">split</span>(<span class="ruby-string">&#39;=&#39;</span>, <span class="ruby-value">2</span>)
+      <span class="ruby-identifier">items</span>[<span class="ruby-identifier">key</span>] = <span class="ruby-identifier">value</span>
+    <span class="ruby-keyword">when</span> <span class="ruby-string">&quot;Data&quot;</span>
+      <span class="ruby-identifier">data</span> = <span class="ruby-identifier">stream</span>.<span class="ruby-identifier">read</span>(<span class="ruby-identifier">items</span>[<span class="ruby-string">&#39;DataLength&#39;</span>].<span class="ruby-identifier">to_i</span>)
+      <span class="ruby-keyword">break</span>
+    <span class="ruby-keyword">else</span>
+      <span class="ruby-identifier">type</span> = <span class="ruby-identifier">line</span> <span class="ruby-keyword">if</span> <span class="ruby-identifier">type</span> <span class="ruby-operator">==</span> <span class="ruby-keyword">nil</span>
+    <span class="ruby-keyword">end</span>
+  <span class="ruby-keyword">end</span>
+  <span class="ruby-keyword">return</span> <span class="ruby-constant">Message</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">type</span>, <span class="ruby-identifier">data</span>, <span class="ruby-identifier">items</span>)
+<span class="ruby-keyword">end</span></pre>
+          </div>
+          
+        </div>
+
+        
+
+        
+      </div>
+
+    
+    </section>
+  
+     <section id="public-instance-5Buntitled-5D-method-details" class="method-section">
+       <header>
+         <h3>Public Instance Methods</h3>
+       </header>
+
+    
+      <div id="method-i-callback-3F" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">callback?</span><span
+            class="method-args">()</span>
+          
+          <span class="method-click-advice">click to toggle source</span>
+          
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+          
+
+          
+          <div class="method-source-code" id="callback-3F-source">
+            <pre><span class="ruby-comment"># File freenet/fcp/message.rb, line 54</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">callback?</span>
+  <span class="ruby-ivar">@callback</span>.<span class="ruby-identifier">nil?</span> <span class="ruby-operator">==</span> <span class="ruby-keyword">false</span>
+<span class="ruby-keyword">end</span></pre>
+          </div>
+          
+        </div>
+
+        
+
+        
+      </div>
+
+    
+      <div id="method-i-continue_thread" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">continue_thread</span><span
+            class="method-args">(message)</span>
+          
+          <span class="method-click-advice">click to toggle source</span>
+          
+        </div>
+        
+
+        <div class="method-description">
+          
+          <p>Sets the reply. This is private to <a href="Client.html">FCP::Client</a></p>
+          
+          
+
+          
+          <div class="method-source-code" id="continue_thread-source">
+            <pre><span class="ruby-comment"># File freenet/fcp/message.rb, line 59</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">continue_thread</span>(<span class="ruby-identifier">message</span>)
+  <span class="ruby-ivar">@response</span> = <span class="ruby-identifier">message</span>
+  <span class="ruby-ivar">@this_thread</span>.<span class="ruby-identifier">run</span> <span class="ruby-keyword">if</span> <span class="ruby-ivar">@this_thread</span>
+<span class="ruby-keyword">end</span></pre>
+          </div>
+          
+        </div>
+
+        
+
+        
+      </div>
+
+    
+      <div id="method-i-status" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">status</span><span
+            class="method-args">()</span>
+          
+          <span class="method-click-advice">click to toggle source</span>
+          
+        </div>
+        
+
+        <div class="method-description">
+          
+          <p>Gets the status for this message. The key ones all apps need to handle are:</p>
+<dl class="rdoc-list label-list"><dt>:finished
+<dd>
+<p>When a request has successfully finished</p>
+</dd><dt>:redirect
+<dd>
+<p>The message has recieved a redirect internally This could be handled
+internally, I haven&#39;t decided yet.</p>
+</dd><dt>:failed
+<dd>
+<p>The request has fatally failed</p>
+</dd><dt>:error
+<dd>
+<p>An error in the <a href="../FCP.html">FCP</a> messages occured. This is
+caused by a bug in rubyFreenet</p>
+</dd></dl>
+          
+          
+
+          
+          <div class="method-source-code" id="status-source">
+            <pre><span class="ruby-comment"># File freenet/fcp/message.rb, line 77</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">status</span>
+  <span class="ruby-keyword">case</span> <span class="ruby-ivar">@type</span>
+  <span class="ruby-keyword">when</span> <span class="ruby-string">&#39;PersistentGet&#39;</span>
+      <span class="ruby-value">:get</span>
+  <span class="ruby-keyword">when</span> <span class="ruby-string">&#39;PersistentPut&#39;</span>
+      <span class="ruby-value">:put</span>
+  <span class="ruby-keyword">when</span> <span class="ruby-string">&#39;SSKKeypair&#39;</span>
+      <span class="ruby-value">:keypair</span>
+  <span class="ruby-keyword">when</span> <span class="ruby-string">&#39;AllData&#39;</span>
+      <span class="ruby-value">:finished</span>
+  <span class="ruby-keyword">when</span> <span class="ruby-string">&#39;PersistentGet&#39;</span>
+      <span class="ruby-value">:pending</span>
+  <span class="ruby-keyword">when</span> <span class="ruby-string">&#39;SimpleProgress&#39;</span>
+      <span class="ruby-value">:progress</span>
+  <span class="ruby-keyword">when</span> <span class="ruby-string">&#39;ProtocolError&#39;</span>
+      <span class="ruby-value">:failed</span>
+  <span class="ruby-keyword">when</span> <span class="ruby-string">&#39;URIGenerated&#39;</span>
+      <span class="ruby-value">:uri_generated</span>
+  <span class="ruby-keyword">when</span> <span class="ruby-string">&#39;PutSuccessful&#39;</span>
+      <span class="ruby-value">:finished</span>
+  <span class="ruby-keyword">when</span> <span class="ruby-string">&#39;PutFailed&#39;</span>
+      <span class="ruby-value">:failed</span>
+  <span class="ruby-keyword">when</span> <span class="ruby-string">&#39;ProtocolError&#39;</span>
+      <span class="ruby-value">:error</span>
+  <span class="ruby-keyword">when</span> <span class="ruby-string">&#39;DataFound&#39;</span>
+      <span class="ruby-value">:found</span>
+  <span class="ruby-keyword">when</span> <span class="ruby-string">&#39;GetFailed&#39;</span>
+    <span class="ruby-keyword">if</span> <span class="ruby-identifier">items</span>[<span class="ruby-string">&#39;RedirectURI&#39;</span>]
+        <span class="ruby-value">:redirect</span>
+    <span class="ruby-keyword">elsif</span> <span class="ruby-identifier">items</span>[<span class="ruby-string">&#39;Fatal&#39;</span>] <span class="ruby-operator">==</span> <span class="ruby-string">&#39;false&#39;</span>
+      <span class="ruby-keyword">case</span> <span class="ruby-identifier">items</span>[<span class="ruby-string">&#39;Code&#39;</span>]
+      <span class="ruby-keyword">when</span> <span class="ruby-string">&#39;15&#39;</span> <span class="ruby-comment"># Node overloaded. Wait then re-request. We can re-use the ID as GetFailed removes the ID from FRED</span>
+        <span class="ruby-keyword">if</span> <span class="ruby-ivar">@request</span>.<span class="ruby-identifier">retries</span> <span class="ruby-operator">&lt;</span> <span class="ruby-value">5</span>
+            <span class="ruby-value">:retrying</span>
+        <span class="ruby-keyword">else</span>
+            <span class="ruby-value">:failed</span>
+        <span class="ruby-keyword">end</span>
+      <span class="ruby-keyword">else</span>
+          <span class="ruby-value">:failed</span>
+      <span class="ruby-keyword">end</span>
+    <span class="ruby-keyword">else</span>
+        <span class="ruby-value">:failed</span>
+    <span class="ruby-keyword">end</span>
+  <span class="ruby-keyword">end</span>
+<span class="ruby-keyword">end</span></pre>
+          </div>
+          
+        </div>
+
+        
+
+        
+      </div>
+
+    
+      <div id="method-i-wait_for_response" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">wait_for_response</span><span
+            class="method-args">()</span>
+          
+          <span class="method-click-advice">click to toggle source</span>
+          
+        </div>
+        
+
+        <div class="method-description">
+          
+          <p>Used to block until the reply is received for synchronous messages. May be
+called from any thread.</p>
+          
+          
+
+          
+          <div class="method-source-code" id="wait_for_response-source">
+            <pre><span class="ruby-comment"># File freenet/fcp/message.rb, line 66</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">wait_for_response</span>
+  <span class="ruby-ivar">@this_thread</span> = <span class="ruby-constant">Thread</span>.<span class="ruby-identifier">current</span>
+  <span class="ruby-constant">Thread</span>.<span class="ruby-identifier">stop</span>
+<span class="ruby-keyword">end</span></pre>
+          </div>
+          
+        </div>
+
+        
+
+        
+      </div>
+
+    
+      <div id="method-i-write" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">write</span><span
+            class="method-args">(stream)</span>
+          
+          <span class="method-click-advice">click to toggle source</span>
+          
+        </div>
+        
+
+        <div class="method-description">
+          
+          <p>Write this object to an <a href="../FCP.html">FCP</a> stream.</p>
+          
+          
+
+          
+          <div class="method-source-code" id="write-source">
+            <pre><span class="ruby-comment"># File freenet/fcp/message.rb, line 124</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">write</span>(<span class="ruby-identifier">stream</span>)
+  <span class="ruby-identifier">stream</span>.<span class="ruby-identifier">write</span>(<span class="ruby-identifier">type</span>.<span class="ruby-identifier">strip</span><span class="ruby-operator">+</span><span class="ruby-string">&quot;\n&quot;</span>)
+  <span class="ruby-identifier">items</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">key</span>, <span class="ruby-identifier">value</span><span class="ruby-operator">|</span>
+    <span class="ruby-identifier">stream</span>.<span class="ruby-identifier">write</span>(<span class="ruby-node">&quot;#{key}=#{value.to_s.strip}\n&quot;</span>)
+  <span class="ruby-keyword">end</span>
+  <span class="ruby-keyword">if</span> <span class="ruby-identifier">data</span>
+    <span class="ruby-identifier">stream</span>.<span class="ruby-identifier">write</span>(<span class="ruby-node">&quot;DataLength=#{data.length}\n&quot;</span>)
+    <span class="ruby-identifier">stream</span>.<span class="ruby-identifier">write</span>(<span class="ruby-string">&quot;Data\n&quot;</span>)
+    <span class="ruby-identifier">stream</span>.<span class="ruby-identifier">write</span>(<span class="ruby-identifier">data</span>)
+  <span class="ruby-keyword">else</span>
+    <span class="ruby-identifier">stream</span>.<span class="ruby-identifier">write</span>(<span class="ruby-string">&quot;EndMessage\n&quot;</span>)
+  <span class="ruby-keyword">end</span>
+  <span class="ruby-identifier">stream</span>.<span class="ruby-identifier">flush</span>
+<span class="ruby-keyword">end</span></pre>
+          </div>
+          
+        </div>
+
+        
+
+        
+      </div>
+
+    
+    </section>
+  
+  </section>
+</main>
+
+
+<footer id="validator-badges" role="contentinfo">
+  <p><a href="http://validator.w3.org/check/referer">Validate</a>
+  <p>Generated by <a href="http://docs.seattlerb.org/rdoc/">RDoc</a> 4.2.0.
+  <p>Based on <a href="http://deveiate.org/projects/Darkfish-RDoc/">Darkfish</a> by <a href="http://deveiate.org">Michael Granger</a>.
+</footer>
+

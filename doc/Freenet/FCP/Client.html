@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<meta charset="UTF-8">
+
+<title>class Freenet::FCP::Client - RDoc Documentation</title>
+
+<script type="text/javascript">
+  var rdoc_rel_prefix = "../../";
+</script>
+
+<script src="../../js/jquery.js"></script>
+<script src="../../js/darkfish.js"></script>
+
+<link href="../../css/fonts.css" rel="stylesheet">
+<link href="../../css/rdoc.css" rel="stylesheet">
+
+
+
+<body id="top" role="document" class="class">
+<nav role="navigation">
+  <div id="project-navigation">
+    <div id="home-section" role="region" title="Quick navigation" class="nav-section">
+  <h2>
+    <a href="../../index.html" rel="home">Home</a>
+  </h2>
+
+  <div id="table-of-contents-navigation">
+    <a href="../../table_of_contents.html#pages">Pages</a>
+    <a href="../../table_of_contents.html#classes">Classes</a>
+    <a href="../../table_of_contents.html#methods">Methods</a>
+  </div>
+</div>
+
+    <div id="search-section" role="search" class="project-section initially-hidden">
+  <form action="#" method="get" accept-charset="utf-8">
+    <div id="search-field-wrapper">
+      <input id="search-field" role="combobox" aria-label="Search"
+             aria-autocomplete="list" aria-controls="search-results"
+             type="text" name="search" placeholder="Search" spellcheck="false"
+             title="Type to search, Up and Down to navigate, Enter to load">
+    </div>
+
+    <ul id="search-results" aria-label="Search Results"
+        aria-busy="false" aria-expanded="false"
+        aria-atomic="false" class="initially-hidden"></ul>
+  </form>
+</div>
+
+  </div>
+
+  
+<div class="nav-section">
+  <h3>Table of Contents</h3>
+
+  <ul class="link-list" role="directory">
+    <li><a href="#class-Freenet::FCP::Client-label-Bugs">Bugs</a>
+    <li><a href="#class-Freenet::FCP::Client-label-Future+Development">Future Development</a>
+    <li><a href="#class-Freenet::FCP::Client-label-Examples">Examples</a>
+    <li><a href="#class-Freenet::FCP::Client-label-Synchronous+Use">Synchronous Use</a>
+    <li><a href="#class-Freenet::FCP::Client-label-Asynchronous+Use">Asynchronous Use</a>
+    <li><a href="#class-Freenet::FCP::Client-label-Thread+safety">Thread safety</a>
+    <li><a href="#class-Freenet::FCP::Client-label-Unknown+and+All+Message+callbacks">Unknown and All Message callbacks</a>
+  </ul>
+</div>
+
+
+  <div id="class-metadata">
+    
+    <div id="parent-class-section" class="nav-section">
+  <h3>Parent</h3>
+
+  
+  <p class="link"><a href="../../Object.html">Object</a>
+  
+</div>
+
+    <div id="includes-section" class="nav-section">
+  <h3>Included Modules</h3>
+
+  <ul class="link-list">
+  
+  
+    <li><span class="include">Logger::Severity</span>
+  
+  
+  </ul>
+</div>
+
+    
+    <!-- Method Quickref -->
+<div id="method-list-section" class="nav-section">
+  <h3>Methods</h3>
+
+  <ul class="link-list" role="directory">
+    
+    <li ><a href="#method-c-new">::new</a>
+    
+    <li ><a href="#method-i-all_messages">#all_messages</a>
+    
+    <li ><a href="#method-i-connect">#connect</a>
+    
+    <li ><a href="#method-i-disconnect">#disconnect</a>
+    
+    <li ><a href="#method-i-generate_keypair">#generate_keypair</a>
+    
+    <li ><a href="#method-i-get">#get</a>
+    
+    <li ><a href="#method-i-list_persistent_requests">#list_persistent_requests</a>
+    
+    <li ><a href="#method-i-load_request">#load_request</a>
+    
+    <li ><a href="#method-i-modify_request">#modify_request</a>
+    
+    <li ><a href="#method-i-put">#put</a>
+    
+    <li ><a href="#method-i-put_complex_dir">#put_complex_dir</a>
+    
+    <li ><a href="#method-i-putdir">#putdir</a>
+    
+    <li ><a href="#method-i-remove_request">#remove_request</a>
+    
+    <li ><a href="#method-i-request_status">#request_status</a>
+    
+    <li ><a href="#method-i-unknown_message">#unknown_message</a>
+    
+    <li ><a href="#method-i-watch_global">#watch_global</a>
+    
+  </ul>
+</div>
+
+  </div>
+</nav>
+
+<main role="main" aria-labelledby="class-Freenet::FCP::Client">
+  <h1 id="class-Freenet::FCP::Client" class="class">
+    class Freenet::FCP::Client
+  </h1>
+
+  <section class="description">
+    
+<p>Implements <a href="../../Freenet.html">Freenet</a> <a
+href="Client.html">Client</a> Protocol client in Ruby. It is multithreaded
+and mostly thread-safe.</p>
+
+<h2 id="class-Freenet::FCP::Client-label-Bugs">Bugs<span><a href="#class-Freenet::FCP::Client-label-Bugs">&para;</a> <a href="#top">&uarr;</a></span></h2>
+
+<p>Probably many. This should get better.</p>
+
+<h2 id="class-Freenet::FCP::Client-label-Future+Development">Future Development<span><a href="#class-Freenet::FCP::Client-label-Future+Development">&para;</a> <a href="#top">&uarr;</a></span></h2>
+
+<p>I hope to add more convinience methods, such as being able to insert data
+from any IO object instead of strings only. ClientPutDir and
+ClientPutComplexDir still need to be implemented.</p>
+
+<p>Polling-based asynchronous use may be implemented if there&#39;s demand.</p>
+
+<p>I probably need to tidy up the exception structure.</p>
+
+<h2 id="class-Freenet::FCP::Client-label-Examples">Examples<span><a href="#class-Freenet::FCP::Client-label-Examples">&para;</a> <a href="#top">&uarr;</a></span></h2>
+
+<h3 id="class-Freenet::FCP::Client-label-Synchronous+Use">Synchronous Use<span><a href="#class-Freenet::FCP::Client-label-Synchronous+Use">&para;</a> <a href="#top">&uarr;</a></span></h3>
+
+<p>Synchronous use is the easiest way to interface with <a
+href="../FCP.html">FCP</a>. The calling thread will block until a response
+is received from the server. This is limited in use as responses may take a
+long time.</p>
+
+<p><a href="Client.html">Client</a> names are unique to an application. If
+your application may have more than one instance per node then each
+instance must have a unique name. In the event of a name conflict FRED
+assumes that the original application has died and the new one is a
+replacement and disconnects the oldest connection.</p>
+
+<p>Most methods take a block, this is called with each message received. The
+arguments are a status code, the request message and the response message.
+To break out of the response loop raise <a
+href="RequestFinished.html">Freenet::FCP::RequestFinished</a> and any
+futher responses from the node for the request will be ignored.</p>
+
+<pre class="ruby"><span class="ruby-identifier">require</span> <span class="ruby-string">&#39;freenet/client&#39;</span>
+<span class="ruby-identifier">client</span> = <span class="ruby-constant">Freenet</span><span class="ruby-operator">::</span><span class="ruby-constant">FCP</span><span class="ruby-operator">::</span><span class="ruby-constant">Client</span>.<span class="ruby-identifier">new</span>(<span class="ruby-string">&#39;MyFreenetClient&#39;</span>, <span class="ruby-string">&#39;127.0.0.1&#39;</span>, <span class="ruby-value">9481</span>)
+<span class="ruby-identifier">file</span> = <span class="ruby-identifier">client</span>.<span class="ruby-identifier">get</span>(<span class="ruby-string">&quot;KSK@gpl.txt&quot;</span>) <span class="ruby-keyword">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">status</span>, <span class="ruby-identifier">request</span>, <span class="ruby-identifier">response</span><span class="ruby-operator">|</span>
+  <span class="ruby-keyword">case</span> <span class="ruby-identifier">status</span>
+  <span class="ruby-keyword">when</span> :<span class="ruby-identifier">finished</span>
+    <span class="ruby-identifier">puts</span> <span class="ruby-identifier">response</span>.<span class="ruby-identifier">data</span>
+    <span class="ruby-identifier">raise</span> <span class="ruby-constant">Freenet</span><span class="ruby-operator">::</span><span class="ruby-constant">FCP</span><span class="ruby-operator">::</span><span class="ruby-constant">RequestFinished</span>.<span class="ruby-identifier">new</span>
+  <span class="ruby-keyword">when</span> :<span class="ruby-identifier">failed</span>
+    <span class="ruby-identifier">puts</span> <span class="ruby-string">&quot;Request failed :(&quot;</span>
+    <span class="ruby-identifier">raise</span> <span class="ruby-constant">Freenet</span><span class="ruby-operator">::</span><span class="ruby-constant">FCP</span><span class="ruby-operator">::</span><span class="ruby-constant">RequestFinished</span>.<span class="ruby-identifier">new</span>
+  <span class="ruby-keyword">end</span>
+<span class="ruby-keyword">end</span>
+</pre>
+
+<p>See method details for possible status codes. All callbacks may get the
+following</p>
+<dl class="rdoc-list label-list"><dt>:error
+<dd>
+<p><a href="../../Freenet.html">Freenet</a> reported a ProtocolError</p>
+</dd></dl>
+
+<h3 id="class-Freenet::FCP::Client-label-Asynchronous+Use">Asynchronous Use<span><a href="#class-Freenet::FCP::Client-label-Asynchronous+Use">&para;</a> <a href="#top">&uarr;</a></span></h3>
+
+<p>Asynchronous is very similar to synchronous use, except the block is run in
+a separate thread each time it&#39;s called. Your application will need to
+be thread safe.</p>
+
+<pre class="ruby"><span class="ruby-identifier">client</span>.<span class="ruby-identifier">get</span>(<span class="ruby-string">&quot;KSK@gpl.txt&quot;</span>) <span class="ruby-keyword">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">status</span>, <span class="ruby-identifier">message</span>, <span class="ruby-identifier">response</span><span class="ruby-operator">|</span>
+  <span class="ruby-keyword">case</span> <span class="ruby-identifier">status</span>
+  <span class="ruby-keyword">when</span> :<span class="ruby-identifier">finished</span> <span class="ruby-keyword">then</span> <span class="ruby-identifier">puts</span> <span class="ruby-identifier">response</span>.<span class="ruby-identifier">data</span>
+  <span class="ruby-keyword">end</span>
+<span class="ruby-keyword">end</span>
+<span class="ruby-comment"># The application will exit here unless you block somehow.</span>
+</pre>
+
+<h4 id="class-Freenet::FCP::Client-label-Thread+safety">Thread safety<span><a href="#class-Freenet::FCP::Client-label-Thread+safety">&para;</a> <a href="#top">&uarr;</a></span></h4>
+
+<p>In callbacks the messages are locked before the callback runs. Always
+acquire locks with Message#lock before using, but don&#39;t forget to
+release with Message#unlock.</p>
+
+<p>Message#synchronize may be implemented later.</p>
+
+<h2 id="class-Freenet::FCP::Client-label-Unknown+and+All+Message+callbacks">Unknown and All <a href="Message.html">Message</a> callbacks<span><a href="#class-Freenet::FCP::Client-label-Unknown+and+All+Message+callbacks">&para;</a> <a href="#top">&uarr;</a></span></h2>
+
+<p><a href="Client.html#method-i-all_messages">#all_messages</a> takes a block
+that takes status, request and response and is called for all messages,
+including unknown ones. If the message is unknown then request is nil.</p>
+
+<p><a href="Client.html#method-i-unknown_message">#unknown_message</a> takes a
+block that takes status, response for all unknown messages</p>
+
+<p>Both these callbacks are threaded.</p>
+
+  </section>
+
+  
+  
+  
+  <section id="5Buntitled-5D" class="documentation-section">
+    
+
+    
+
+    
+
+    
+
+    
+     <section id="public-class-5Buntitled-5D-method-details" class="method-section">
+       <header>
+         <h3>Public Class Methods</h3>
+       </header>
+
+    
+      <div id="method-c-new" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">new</span><span
+            class="method-args">(client_name=nil, server="127.0.0.1", port=9481, options={})</span>
+          
+          <span class="method-click-advice">click to toggle source</span>
+          
+        </div>
+        
+
+        <div class="method-description">
+          
+          <p>Constructor, prepares various settings and connects to the <a
+href="../../Freenet.html">Freenet</a> node</p>
+<dl class="rdoc-list label-list"><dt>client_name
+<dd>
+<p>A unique identifier to your client, it should be the same for all
+connections. It allows persistent connections to find old requests</p>
+</dd><dt>server
+<dd>
+<p>The IP of the <a href="../FCP.html">FCP</a> host, normally 127.0.0.1</p>
+</dd><dt>port
+<dd>
+<p>The associated TCP port, normally 9481</p>
+</dd><dt>options
+<dd>
+<p>Currently unused.</p>
+</dd></dl>
+
+<p>raises <a href="FCPConnectionError.html">FCPConnectionError</a> if
+connection fails</p>
+          
+          
+
+          
+          <div class="method-source-code" id="new-source">
+            <pre><span class="ruby-comment"># File freenet/fcp/client.rb, line 97</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">client_name</span>=<span class="ruby-keyword">nil</span>, <span class="ruby-identifier">server</span>=<span class="ruby-string">&quot;127.0.0.1&quot;</span>, <span class="ruby-identifier">port</span>=<span class="ruby-value">9481</span>, <span class="ruby-identifier">options</span>={})
+  <span class="ruby-ivar">@client_name</span> = <span class="ruby-identifier">client_name</span> <span class="ruby-operator">||</span> <span class="ruby-constant">MD5</span>.<span class="ruby-identifier">md5</span>(<span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>.<span class="ruby-identifier">to_s</span>)
+  <span class="ruby-ivar">@options</span>, <span class="ruby-ivar">@server</span>, <span class="ruby-ivar">@port</span> = <span class="ruby-identifier">options</span>, <span class="ruby-identifier">server</span>, <span class="ruby-identifier">port</span>
+  <span class="ruby-ivar">@messages</span> = {}
+  <span class="ruby-ivar">@running</span> = <span class="ruby-keyword">false</span>
+  <span class="ruby-ivar">@lock</span> = <span class="ruby-constant">Mutex</span>.<span class="ruby-identifier">new</span>
+  <span class="ruby-ivar">@logger</span> = <span class="ruby-constant">Logger</span>.<span class="ruby-identifier">new</span>(<span class="ruby-string">&#39;FCPClientLog&#39;</span>,<span class="ruby-string">&#39;daily&#39;</span>)
+  <span class="ruby-ivar">@message_queue</span> = <span class="ruby-constant">Queue</span>.<span class="ruby-identifier">new</span>
+  <span class="ruby-identifier">connect</span>
+  <span class="ruby-identifier">hello</span>
+<span class="ruby-keyword">end</span></pre>
+          </div>
+          
+        </div>
+
+        
+
+        
+      </div>
+
+    
+    </section>
+  
+     <section id="public-instance-5Buntitled-5D-method-details" class="method-section">
+       <header>
+         <h3>Public Instance Methods</h3>
+       </header>
+
+    
+      <div id="method-i-all_messages" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">all_messages</span><span
+            class="method-args">(&callback)</span>
+          
+          <span class="method-click-advice">click to toggle source</span>
+          
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+          
+
+          
+          <div class="method-source-code" id="all_messages-source">
+            <pre><span class="ruby-comment"># File freenet/fcp/client.rb, line 331</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">all_messages</span>(<span class="ruby-operator">&amp;</span><span class="ruby-identifier">callback</span>)
+  <span class="ruby-ivar">@all_callback</span> = <span class="ruby-identifier">callback</span>
+<span class="ruby-keyword">end</span></pre>
+          </div>
+          
+        </div>
+
+        
+
+        
+      </div>
+
+    
+      <div id="method-i-connect" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">connect</span><span
+            class="method-args">()</span>
+          
+          <span class="method-click-advice">click to toggle source</span>
+          
+        </div>
+        
+
+        <div class="method-description">
+          
+          <p>Performs the connection and worker thread creation</p>
+
+<p>raises <a href="FCPConnectionError.html">FCPConnectionError</a> if
+something goes wrong</p>
+          
+          
+
+          
+          <div class="method-source-code" id="connect-source">
+            <pre><span class="ruby-comment"># File freenet/fcp/client.rb, line 112</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">connect</span>
+  <span class="ruby-ivar">@lock</span>.<span class="ruby-identifier">synchronize</span> <span class="ruby-keyword">do</span>
+    <span class="ruby-identifier">log</span>(<span class="ruby-constant">INFO</span>, <span class="ruby-node">&quot;Connecting to #{@server}:#{@port}&quot;</span>)
+    <span class="ruby-ivar">@socket</span> = <span class="ruby-constant">TCPSocket</span>.<span class="ruby-identifier">open</span>(<span class="ruby-ivar">@server</span>, <span class="ruby-ivar">@port</span>)
+    <span class="ruby-keyword">class</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-ivar">@socket</span>
+      <span class="ruby-identifier">alias_method</span> <span class="ruby-value">:old_write</span>, <span class="ruby-value">:write</span>
+      <span class="ruby-identifier">alias_method</span> <span class="ruby-operator">:</span><span class="ruby-identifier">old_readline</span>, <span class="ruby-value">:readline</span>
+      <span class="ruby-keyword">def</span> <span class="ruby-identifier">logger=</span>(<span class="ruby-identifier">logger</span>)
+        <span class="ruby-ivar">@logger</span> = <span class="ruby-identifier">logger</span>
+      <span class="ruby-keyword">end</span>
+
+      <span class="ruby-keyword">def</span> <span class="ruby-identifier">log</span>(<span class="ruby-identifier">severity</span>, <span class="ruby-identifier">message</span>)
+        <span class="ruby-ivar">@logger</span>.<span class="ruby-identifier">add</span>(<span class="ruby-identifier">severity</span>, <span class="ruby-identifier">message</span>)
+      <span class="ruby-keyword">end</span>
+
+      <span class="ruby-keyword">def</span> <span class="ruby-identifier">write</span>(<span class="ruby-identifier">str</span>)
+        <span class="ruby-identifier">log</span>(<span class="ruby-operator">::</span><span class="ruby-constant">Logger</span><span class="ruby-operator">::</span><span class="ruby-constant">Severity</span><span class="ruby-operator">::</span><span class="ruby-constant">DEBUG</span>, <span class="ruby-node">&quot;Writing: #{str.strip}&quot;</span>)
+        <span class="ruby-identifier">old_write</span>(<span class="ruby-identifier">str</span>)
+      <span class="ruby-keyword">end</span>
+
+      <span class="ruby-keyword">def</span> <span class="ruby-identifier">readline</span>
+        <span class="ruby-identifier">line</span> = <span class="ruby-identifier">old_readline</span>
+        <span class="ruby-identifier">log</span>(<span class="ruby-operator">::</span><span class="ruby-constant">Logger</span><span class="ruby-operator">::</span><span class="ruby-constant">Severity</span><span class="ruby-operator">::</span><span class="ruby-constant">DEBUG</span>, <span class="ruby-node">&quot;Reading: #{line.strip}&quot;</span>)
+        <span class="ruby-identifier">line</span>
+      <span class="ruby-keyword">end</span>
+    <span class="ruby-keyword">end</span>
+    <span class="ruby-ivar">@socket</span>.<span class="ruby-identifier">logger</span> = <span class="ruby-ivar">@logger</span>
+    <span class="ruby-ivar">@running</span> = <span class="ruby-keyword">true</span>
+    <span class="ruby-ivar">@socket_thread</span> = <span class="ruby-constant">Thread</span>.<span class="ruby-identifier">new</span> {<span class="ruby-identifier">socket_thread</span>}
+    <span class="ruby-identifier">log</span>(<span class="ruby-constant">DEBUG</span>, <span class="ruby-string">&quot;Running thread&quot;</span>)
+  <span class="ruby-keyword">end</span>
+<span class="ruby-comment">#rescue</span>
+  <span class="ruby-comment">#raise FCPConnectionError.new(&#39;Connection failed&#39;)</span>
+<span class="ruby-keyword">end</span></pre>
+          </div>
+          
+        </div>
+
+        
+
+        
+      </div>
+
+    
+      <div id="method-i-disconnect" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">disconnect</span><span
+            class="method-args">()</span>
+          
+          <span class="method-click-advice">click to toggle source</span>
+          
+        </div>
+        
+
+        <div class="method-description">
+          
+          <p>Get the worker thread to disconnect. Doesn&#39;t guarantee immediate
+disconnection as any message currently being read will still be processed</p>
+          
+          
+
+          
+          <div class="method-source-code" id="disconnect-source">
+            <pre><span class="ruby-comment"># File freenet/fcp/client.rb, line 149</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">disconnect</span>
+  <span class="ruby-identifier">log</span>(<span class="ruby-constant">INFO</span>, <span class="ruby-string">&#39;Disconnecting&#39;</span>)
+  <span class="ruby-ivar">@lock</span>.<span class="ruby-identifier">synchronize</span> <span class="ruby-keyword">do</span>
+    <span class="ruby-ivar">@running</span> = <span class="ruby-keyword">false</span>
+  <span class="ruby-keyword">end</span>
+  <span class="ruby-ivar">@socket_thread</span>.<span class="ruby-identifier">join</span> <span class="ruby-keyword">if</span> <span class="ruby-ivar">@socket_thread</span>
+<span class="ruby-keyword">end</span></pre>
+          </div>
+          
+        </div>
+
+        
+
+        
+      </div>
+
+    
+      <div id="method-i-generate_keypair" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">generate_keypair</span><span
+            class="method-args">(block = true, &callback)</span>
+          
+          <span class="method-click-advice">click to toggle source</span>
+          
+        </div>
+        
+
+        <div class="method-description">
+          
+          <p>Generates a keypair for SSK use. If used synchronously it returns
+[InsertURI, RequestURI], otherwise extract InsertURI and RequestURI from
+response.items</p>
+          
+          
+
+          
+          <div class="method-source-code" id="generate_keypair-source">
+            <pre><span class="ruby-comment"># File freenet/fcp/client.rb, line 171</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">generate_keypair</span>(<span class="ruby-identifier">block</span> = <span class="ruby-keyword">true</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">callback</span>)
+  <span class="ruby-identifier">message</span> = <span class="ruby-constant">Message</span>.<span class="ruby-identifier">new</span>(<span class="ruby-string">&#39;GenerateSSK&#39;</span>, <span class="ruby-keyword">nil</span>, <span class="ruby-keyword">nil</span>, <span class="ruby-identifier">callback</span>)
+  <span class="ruby-identifier">send</span>(<span class="ruby-identifier">message</span>)
+  <span class="ruby-keyword">unless</span> <span class="ruby-identifier">block</span>
+    <span class="ruby-identifier">message</span>
+  <span class="ruby-keyword">else</span>
+    <span class="ruby-identifier">message</span>.<span class="ruby-identifier">wait_for_response</span>
+    [<span class="ruby-identifier">message</span>.<span class="ruby-identifier">response</span>.<span class="ruby-identifier">items</span>[<span class="ruby-string">&#39;InsertURI&#39;</span>], <span class="ruby-identifier">message</span>.<span class="ruby-identifier">response</span>.<span class="ruby-identifier">items</span>[<span class="ruby-string">&#39;RequestURI&#39;</span>]]
+  <span class="ruby-keyword">end</span>
+<span class="ruby-keyword">end</span></pre>
+          </div>
+          
+        </div>
+
+        
+
+        
+      </div>
+
+    
+      <div id="method-i-get" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">get</span><span
+            class="method-args">(uri, block=true, options=nil, &callback)</span>
+          
+          <span class="method-click-advice">click to toggle source</span>
+          
+        </div>
+        
+
+        <div class="method-description">
+          
+          <h2 id="method-i-get-label-Request+a+file+from+Freenet.">Request a file from <a href="../../Freenet.html">Freenet</a>.<span><a href="#method-i-get-label-Request+a+file+from+Freenet.">&para;</a> <a href="#top">&uarr;</a></span></h2>
+
+<p>Applicable status messages:</p>
+<dl class="rdoc-list label-list"><dt>:pending
+<dd>
+<p>The message is in Freenet&#39;s queue.</p>
+</dd><dt>:progress
+<dd>
+<p>A SimpleProgress message has been recieved</p>
+</dd><dt>:redirect
+<dd>
+<p>The node has found a redirect for the file. This is returned to the client
+so a new request can be started, redirects are <strong>NOT</strong>
+followed automatically</p>
+</dd><dt>:retrying
+<dd>
+<p>A non-fatal error has been encountered (eg remote node overloaded) and a
+retry is automatically happening. This is controlled by <a
+href="Message.html#attribute-i-retries">Freenet::FCP::Message#retries</a></p>
+</dd><dt>:failed
+<dd>
+<p>The request has failed, more details in the response</p>
+</dd><dt>:found
+<dd>
+<p>The data has been found, but not returned to the client. If ReturnType is
+not direct (the default) now is the time to do something</p>
+</dd><dt>:finished
+<dd>
+<p>The data has been returned to the client, response.data has it</p>
+</dd></dl>
+
+<h3 id="method-i-get-label-Usage+Examples">Usage Examples<span><a href="#method-i-get-label-Usage+Examples">&para;</a> <a href="#top">&uarr;</a></span></h3>
+
+<h4 id="method-i-get-label-Synchronous+Use">Synchronous Use<span><a href="#method-i-get-label-Synchronous+Use">&para;</a> <a href="#top">&uarr;</a></span></h4>
+
+<pre class="ruby"><span class="ruby-identifier">gpl</span> = <span class="ruby-identifier">client</span>.<span class="ruby-identifier">get</span>(<span class="ruby-string">&#39;KSK@gpl.txt&#39;</span>)
+</pre>
+
+<h4 id="method-i-get-label-Asynchronous+use">Asynchronous use<span><a href="#method-i-get-label-Asynchronous+use">&para;</a> <a href="#top">&uarr;</a></span></h4>
+
+<pre class="ruby"><span class="ruby-identifier">client</span>.<span class="ruby-identifier">get</span>(<span class="ruby-string">&#39;KSK@gpl.txt&#39;</span>, <span class="ruby-keyword">false</span>, <span class="ruby-string">&#39;Persistence&#39;</span>=<span class="ruby-operator">&gt;</span><span class="ruby-string">&#39;connection&#39;</span>) <span class="ruby-keyword">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">status</span>, <span class="ruby-identifier">message</span>, <span class="ruby-identifier">response</span><span class="ruby-operator">|</span>
+  <span class="ruby-keyword">case</span> <span class="ruby-identifier">status</span>
+  <span class="ruby-keyword">when</span> :<span class="ruby-identifier">finished</span> <span class="ruby-keyword">then</span> <span class="ruby-identifier">puts</span> <span class="ruby-identifier">response</span>.<span class="ruby-identifier">data</span>
+  <span class="ruby-keyword">end</span>
+<span class="ruby-keyword">end</span>
+</pre>
+          
+          
+
+          
+          <div class="method-source-code" id="get-source">
+            <pre><span class="ruby-comment"># File freenet/fcp/client.rb, line 208</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">get</span>(<span class="ruby-identifier">uri</span>, <span class="ruby-identifier">block</span>=<span class="ruby-keyword">true</span>, <span class="ruby-identifier">options</span>=<span class="ruby-keyword">nil</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">callback</span>)
+  <span class="ruby-identifier">uri</span> = <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">uri</span> <span class="ruby-keyword">if</span> <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">respond_to?</span> <span class="ruby-value">:uri</span>
+  <span class="ruby-identifier">options</span> = {<span class="ruby-string">&#39;IgnoreDS&#39;</span>=<span class="ruby-operator">&gt;</span><span class="ruby-keyword">false</span>,
+             <span class="ruby-string">&#39;DSOnly&#39;</span>=<span class="ruby-operator">&gt;</span><span class="ruby-keyword">false</span>,
+             <span class="ruby-string">&#39;Verbosity&#39;</span>=<span class="ruby-operator">&gt;</span><span class="ruby-value">0</span>,
+             <span class="ruby-string">&#39;ReturnType&#39;</span>=<span class="ruby-operator">&gt;</span><span class="ruby-string">&#39;direct&#39;</span>,
+             <span class="ruby-string">&#39;PriorityClass&#39;</span>=<span class="ruby-operator">&gt;</span><span class="ruby-value">1</span>,
+             <span class="ruby-string">&#39;Persistence&#39;</span>=<span class="ruby-operator">&gt;</span><span class="ruby-string">&#39;reboot&#39;</span>,
+             <span class="ruby-string">&#39;Global&#39;</span>=<span class="ruby-operator">&gt;</span><span class="ruby-keyword">false</span>}.<span class="ruby-identifier">merge</span>(<span class="ruby-identifier">options</span> <span class="ruby-operator">||</span> {})
+  <span class="ruby-identifier">options</span>[<span class="ruby-string">&#39;Persistence&#39;</span>] = <span class="ruby-string">&#39;connection&#39;</span> <span class="ruby-keyword">if</span> <span class="ruby-identifier">block</span>
+  <span class="ruby-identifier">options</span>[<span class="ruby-string">&#39;URI&#39;</span>] = <span class="ruby-identifier">uri</span>
+  <span class="ruby-identifier">message</span> = <span class="ruby-constant">Message</span>.<span class="ruby-identifier">new</span>(<span class="ruby-string">&#39;ClientGet&#39;</span>, <span class="ruby-keyword">nil</span>, <span class="ruby-identifier">options</span>, <span class="ruby-identifier">callback</span>)
+  <span class="ruby-identifier">log</span>(<span class="ruby-constant">INFO</span>, <span class="ruby-node">&quot;#{message.identifier} GET queued&quot;</span>)
+  <span class="ruby-identifier">send</span>(<span class="ruby-identifier">message</span>)
+  <span class="ruby-identifier">block_message</span>(<span class="ruby-identifier">message</span>, <span class="ruby-identifier">block</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">callback</span>)
+<span class="ruby-keyword">end</span></pre>
+          </div>
+          
+        </div>
+
+        
+
+        
+      </div>
+
+    
+      <div id="method-i-list_persistent_requests" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">list_persistent_requests</span><span
+            class="method-args">()</span>
+          
+          <span class="method-click-advice">click to toggle source</span>
+          
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+          
+
+          
+          <div class="method-source-code" id="list_persistent_requests-source">
+            <pre><span class="ruby-comment"># File freenet/fcp/client.rb, line 322</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">list_persistent_requests</span>()
+  <span class="ruby-identifier">message</span> = <span class="ruby-constant">Message</span>.<span class="ruby-identifier">new</span>(<span class="ruby-string">&#39;ListPersistentRequests&#39;</span>, <span class="ruby-keyword">nil</span>, <span class="ruby-keyword">nil</span>)
+  <span class="ruby-identifier">send</span>(<span class="ruby-identifier">message</span>)
+<span class="ruby-keyword">end</span></pre>
+          </div>
+          
+        </div>
+
+        
+
+        
+      </div>
+
+    
+      <div id="method-i-load_request" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">load_request</span><span
+            class="method-args">(message)</span>
+          
+          <span class="method-click-advice">click to toggle source</span>
+          
+        </div>
+        
+
+        <div class="method-description">
+          
+          <p>Loads a request in to the queue. This is for persistent requests, read the
+notes above for more details</p>
+          
+          
+
+          
+          <div class="method-source-code" id="load_request-source">
+            <pre><span class="ruby-comment"># File freenet/fcp/client.rb, line 159</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">load_request</span>(<span class="ruby-identifier">message</span>)
+  <span class="ruby-identifier">message</span>.<span class="ruby-identifier">load_only</span> = <span class="ruby-keyword">true</span>
+  <span class="ruby-ivar">@message_queue</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">message</span>
+<span class="ruby-keyword">end</span></pre>
+          </div>
+          
+        </div>
+
+        
+
+        
+      </div>
+
+    
+      <div id="method-i-modify_request" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">modify_request</span><span
+            class="method-args">(message, options)</span>
+          
+          <span class="method-click-advice">click to toggle source</span>
+          
+        </div>
+        
+
+        <div class="method-description">
+          
+          <p>Modify a persistent request. Pass the options to change, though Identifier
+and Global must remain the same</p>
+          
+          
+
+          
+          <div class="method-source-code" id="modify_request-source">
+            <pre><span class="ruby-comment"># File freenet/fcp/client.rb, line 310</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">modify_request</span>(<span class="ruby-identifier">message</span>, <span class="ruby-identifier">options</span>)
+  <span class="ruby-identifier">options</span> = <span class="ruby-identifier">options</span>.<span class="ruby-identifier">merge</span>(<span class="ruby-string">&#39;Identifier&#39;</span>=<span class="ruby-operator">&gt;</span><span class="ruby-identifier">message</span>.<span class="ruby-identifier">identifier</span>, <span class="ruby-string">&#39;Global&#39;</span>=<span class="ruby-operator">&gt;</span><span class="ruby-identifier">message</span>.<span class="ruby-identifier">global</span>)
+  <span class="ruby-identifier">message</span> = <span class="ruby-constant">Message</span>.<span class="ruby-identifier">new</span>(<span class="ruby-string">&#39;ModifyPersistentRequest&#39;</span>, <span class="ruby-keyword">nil</span>, <span class="ruby-identifier">options</span>)
+  <span class="ruby-identifier">send</span>(<span class="ruby-identifier">message</span>)
+<span class="ruby-keyword">end</span></pre>
+          </div>
+          
+        </div>
+
+        
+
+        
+      </div>
+
+    
+      <div id="method-i-put" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">put</span><span
+            class="method-args">(uri, data=nil, block=true, options=nil, &callback)</span>
+          
+          <span class="method-click-advice">click to toggle source</span>
+          
+        </div>
+        
+
+        <div class="method-description">
+          
+          <h3 id="method-i-put-label-Put+data+in+to+freenet">Put data in to freenet<span><a href="#method-i-put-label-Put+data+in+to+freenet">&para;</a> <a href="#top">&uarr;</a></span></h3>
+
+<p>This is a very simple put, if you wish to insert a directory then use
+Client#put_dir or <a
+href="Client.html#method-i-put_complex_dir">#put_complex_dir</a>.</p>
+
+<p>Synchronous requests get the inserted <a href="../URI.html">URI</a> or a <a
+href="RequestFailed.html">RequestFailed</a> exception. Asynchronous requsts
+get the following callbacks:</p>
+<dl class="rdoc-list label-list"><dt>:uri_generated
+<dd>
+<p><a href="../../Freenet.html">Freenet</a> has generated the <a
+href="../URI.html">URI</a> (in +<a href="'URI'">response.items</a>+).
+Insertion hasn&#39;t happened at this stage, but the <a
+href="../URI.html">URI</a> is known</p>
+</dd><dt>:success
+<dd>
+<p>The data has been inserted successfully.</p>
+</dd><dt>:failed
+<dd>
+<p>The insertion has failed, response.items contains more information</p>
+</dd></dl>
+
+<h3 id="method-i-put-label-Usage+Examples">Usage Examples<span><a href="#method-i-put-label-Usage+Examples">&para;</a> <a href="#top">&uarr;</a></span></h3>
+
+<h4 id="method-i-put-label-Putting+data+from+Ruby">Putting data from Ruby<span><a href="#method-i-put-label-Putting+data+from+Ruby">&para;</a> <a href="#top">&uarr;</a></span></h4>
+
+<pre class="ruby"><span class="ruby-identifier">put</span>(<span class="ruby-string">&#39;KSK@my-key&#39;</span>, <span class="ruby-string">&#39;This is my text string&#39;</span>, <span class="ruby-keyword">false</span>, <span class="ruby-string">&#39;Metadata.ContentType&#39;</span>=<span class="ruby-operator">&gt;</span> <span class="ruby-string">&#39;text/plain&#39;</span>)
+</pre>
+
+<h4 id="method-i-put-label-Putting+a+file+from+disk+-28must+be+local+to+server-2C+not+client-29">Putting a file from disk (must be local to server, not client)<span><a href="#method-i-put-label-Putting+a+file+from+disk+-28must+be+local+to+server-2C+not+client-29">&para;</a> <a href="#top">&uarr;</a></span></h4>
+
+<pre class="ruby"><span class="ruby-identifier">put</span>(<span class="ruby-string">&#39;KSK@my-key&#39;</span>, <span class="ruby-keyword">nil</span>, <span class="ruby-keyword">false</span>, <span class="ruby-string">&#39;MetaData.ContentType&#39;</span>=<span class="ruby-operator">&gt;</span><span class="ruby-string">&#39;text/plain&#39;</span>, <span class="ruby-string">&#39;UploadFrom&#39;</span>=<span class="ruby-operator">&gt;</span><span class="ruby-string">&#39;disk&#39;</span>, <span class="ruby-string">&#39;Filename&#39;</span>=<span class="ruby-operator">&gt;</span><span class="ruby-string">&#39;/full/path/to/file&#39;</span>)
+</pre>
+
+<h4 id="method-i-put-label-Creating+a+redirect+URI">Creating a redirect <a href="../URI.html">URI</a><span><a href="#method-i-put-label-Creating+a+redirect+URI">&para;</a> <a href="#top">&uarr;</a></span></h4>
+
+<pre class="ruby"><span class="ruby-identifier">put</span>(<span class="ruby-string">&#39;SSK@my-site-key/my-site/image.jpg&#39;</span>, <span class="ruby-keyword">nil</span>, <span class="ruby-keyword">false</span>, <span class="ruby-string">&#39;UploadFrom&#39;</span>=<span class="ruby-operator">&gt;</span><span class="ruby-string">&#39;redirect&#39;</span>,<span class="ruby-string">&#39;TargetURI&#39;</span>=<span class="ruby-operator">&gt;</span><span class="ruby-string">&#39;KSK@image.jpg&#39;</span>)
+</pre>
+          
+          
+
+          
+          <div class="method-source-code" id="put-source">
+            <pre><span class="ruby-comment"># File freenet/fcp/client.rb, line 246</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">put</span>(<span class="ruby-identifier">uri</span>, <span class="ruby-identifier">data</span>=<span class="ruby-keyword">nil</span>, <span class="ruby-identifier">block</span>=<span class="ruby-keyword">true</span>, <span class="ruby-identifier">options</span>=<span class="ruby-keyword">nil</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">callback</span>)
+  <span class="ruby-identifier">uri</span> = <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">uri</span> <span class="ruby-keyword">if</span> <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">respond_to?</span> <span class="ruby-value">:uri</span>
+  <span class="ruby-identifier">options</span> = {<span class="ruby-string">&#39;Metadata.ContentType&#39;</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-string">&#39;application/octet-stream&#39;</span>,
+             <span class="ruby-string">&#39;Verbosity&#39;</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value">0</span>,
+             <span class="ruby-string">&#39;MaxRetries&#39;</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value">10</span>,
+             <span class="ruby-string">&#39;Persistence&#39;</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-string">&#39;reboot&#39;</span>,
+             <span class="ruby-string">&#39;UploadFrom&#39;</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-string">&#39;direct&#39;</span>}.<span class="ruby-identifier">merge</span>(<span class="ruby-identifier">options</span> <span class="ruby-operator">||</span> {})
+  <span class="ruby-identifier">options</span>[<span class="ruby-string">&#39;Persistence&#39;</span>] = <span class="ruby-string">&#39;connection&#39;</span> <span class="ruby-keyword">if</span> <span class="ruby-identifier">block</span>
+  <span class="ruby-identifier">options</span>[<span class="ruby-string">&#39;URI&#39;</span>] = <span class="ruby-identifier">uri</span>
+  <span class="ruby-identifier">message</span> = <span class="ruby-constant">Message</span>.<span class="ruby-identifier">new</span>(<span class="ruby-string">&#39;ClientPut&#39;</span>, <span class="ruby-identifier">data</span>, <span class="ruby-identifier">options</span>, <span class="ruby-identifier">callback</span>)
+  <span class="ruby-identifier">message</span>.<span class="ruby-identifier">content_type</span> = <span class="ruby-identifier">options</span>[<span class="ruby-string">&#39;Metadata.ContentType&#39;</span>]
+  <span class="ruby-identifier">log</span>(<span class="ruby-constant">INFO</span>, <span class="ruby-node">&quot;#{message.identifier} PUT queued&quot;</span>)
+  <span class="ruby-identifier">send</span>(<span class="ruby-identifier">message</span>)
+  <span class="ruby-identifier">block_message</span>(<span class="ruby-identifier">message</span>, <span class="ruby-identifier">block</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">callback</span>)
+<span class="ruby-keyword">end</span></pre>
+          </div>
+          
+        </div>
+
+        
+
+        
+      </div>
+
+    
+      <div id="method-i-put_complex_dir" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">put_complex_dir</span><span
+            class="method-args">(uri, details, block, options, &callback)</span>
+          
+          <span class="method-click-advice">click to toggle source</span>
+          
+        </div>
+        
+
+        <div class="method-description">
+          
+          <p>Put a &#39;complex&#39; dir</p>
+          
+          
+
+          
+          <div class="method-source-code" id="put_complex_dir-source">
+            <pre><span class="ruby-comment"># File freenet/fcp/client.rb, line 281</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">put_complex_dir</span>(<span class="ruby-identifier">uri</span>, <span class="ruby-identifier">details</span>, <span class="ruby-identifier">block</span>, <span class="ruby-identifier">options</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">callback</span>)
+  <span class="ruby-identifier">uri</span> = <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">uri</span> <span class="ruby-keyword">if</span> <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">respond_to?</span> <span class="ruby-value">:uri</span>
+  <span class="ruby-identifier">message</span> = <span class="ruby-constant">Message</span>.<span class="ruby-identifier">new</span>(<span class="ruby-string">&#39;ClientPutComplexDir&#39;</span>, <span class="ruby-keyword">nil</span>, <span class="ruby-identifier">options</span>, <span class="ruby-identifier">callback</span>)
+  <span class="ruby-identifier">log</span>(<span class="ruby-constant">INFO</span>, <span class="ruby-node">&quot;#{message.identifier} Put complex dir queued&quot;</span>)
+  <span class="ruby-identifier">send</span>(<span class="ruby-identifier">message</span>)
+  <span class="ruby-identifier">block_message</span>(<span class="ruby-identifier">message</span>, <span class="ruby-identifier">block</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">callback</span>)
+<span class="ruby-keyword">end</span></pre>
+          </div>
+          
+        </div>
+
+        
+
+        
+      </div>
+
+    
+      <div id="method-i-putdir" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">putdir</span><span
+            class="method-args">(uri, dir, block=true, options=nil, &callback)</span>
+          
+          <span class="method-click-advice">click to toggle source</span>
+          
+        </div>
+        
+
+        <div class="method-description">
+          
+          <p>Upload a directory to a key, either SSK or USK. This directory must be
+local to the node we&#39;re connecting to.</p>
+          
+          
+
+          
+          <div class="method-source-code" id="putdir-source">
+            <pre><span class="ruby-comment"># File freenet/fcp/client.rb, line 264</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">putdir</span>(<span class="ruby-identifier">uri</span>, <span class="ruby-identifier">dir</span>, <span class="ruby-identifier">block</span>=<span class="ruby-keyword">true</span>, <span class="ruby-identifier">options</span>=<span class="ruby-keyword">nil</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">callback</span>)
+  <span class="ruby-identifier">uri</span> = <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">uri</span> <span class="ruby-keyword">if</span> <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">respond_to?</span> <span class="ruby-value">:uri</span>
+  <span class="ruby-identifier">options</span> = {<span class="ruby-string">&#39;Verbosity&#39;</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value">0</span>,
+             <span class="ruby-string">&#39;MaxRetries&#39;</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value">10</span>,
+             <span class="ruby-string">&#39;PriorityClass&#39;</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value">3</span>,
+             <span class="ruby-string">&#39;DefaultName&#39;</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-string">&#39;index.html&#39;</span>,
+             <span class="ruby-string">&#39;Filename&#39;</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">dir</span>.<span class="ruby-identifier">to_s</span>,
+             <span class="ruby-string">&#39;AllowUnreadableFiles&#39;</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-string">&#39;true&#39;</span>}.<span class="ruby-identifier">merge</span>(<span class="ruby-identifier">options</span> <span class="ruby-operator">||</span> {})
+  <span class="ruby-identifier">options</span>[<span class="ruby-string">&#39;Persistence&#39;</span>] = <span class="ruby-string">&#39;connection&#39;</span> <span class="ruby-keyword">if</span> <span class="ruby-identifier">block</span>
+  <span class="ruby-identifier">options</span>[<span class="ruby-string">&#39;URI&#39;</span>] = <span class="ruby-identifier">uri</span>
+  <span class="ruby-identifier">message</span> = <span class="ruby-constant">Message</span>.<span class="ruby-identifier">new</span>(<span class="ruby-string">&#39;ClientPutDiskDir&#39;</span>, <span class="ruby-keyword">nil</span>, <span class="ruby-identifier">options</span>, <span class="ruby-identifier">callback</span>)
+  <span class="ruby-identifier">log</span>(<span class="ruby-constant">INFO</span>, <span class="ruby-node">&quot;#{message.identifier} PUTDIR queued&quot;</span>)
+  <span class="ruby-identifier">send</span>(<span class="ruby-identifier">message</span>)
+  <span class="ruby-identifier">block_message</span>(<span class="ruby-identifier">message</span>, <span class="ruby-identifier">block</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">callback</span>)
+<span class="ruby-keyword">end</span></pre>
+          </div>
+          
+        </div>
+
+        
+
+        
+      </div>
+
+    
+      <div id="method-i-remove_request" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">remove_request</span><span
+            class="method-args">(message)</span>
+          
+          <span class="method-click-advice">click to toggle source</span>
+          
+        </div>
+        
+
+        <div class="method-description">
+          
+          <p>Remove a persistent request from the node. Call this once you&#39;ve
+finished with a request.</p>
+          
+          
+
+          
+          <div class="method-source-code" id="remove_request-source">
+            <pre><span class="ruby-comment"># File freenet/fcp/client.rb, line 317</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">remove_request</span>(<span class="ruby-identifier">message</span>)
+  <span class="ruby-identifier">message</span> = <span class="ruby-constant">Message</span>.<span class="ruby-identifier">new</span>(<span class="ruby-string">&#39;RemovePersistentRequest&#39;</span>, <span class="ruby-keyword">nil</span>, <span class="ruby-string">&#39;Identifier&#39;</span>=<span class="ruby-operator">&gt;</span><span class="ruby-identifier">message</span>.<span class="ruby-identifier">identifier</span>, <span class="ruby-string">&#39;Global&#39;</span>=<span class="ruby-operator">&gt;</span><span class="ruby-identifier">message</span>.<span class="ruby-identifier">items</span>[<span class="ruby-string">&#39;Global&#39;</span>])
+  <span class="ruby-identifier">send</span>(<span class="ruby-identifier">message</span>)
+<span class="ruby-keyword">end</span></pre>
+          </div>
+          
+        </div>
+
+        
+
+        
+      </div>
+
+    
+      <div id="method-i-request_status" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">request_status</span><span
+            class="method-args">(identifier, global, only_data=true, block=true, &callback)</span>
+          
+          <span class="method-click-advice">click to toggle source</span>
+          
+        </div>
+        
+
+        <div class="method-description">
+          
+          <p>Get the request status for a persistent request. Not useful in synchronous
+systems. This will output some PersistentGet/PersistentPut requests, which
+don&#39;t invoke callbacks, SimpleProgress if Verbosity=1, DataFound for
+all GET requests and AllData if ReturnType=direct</p>
+
+<p>Any replies will be directed to the async message&#39;s callback.</p>
+          
+          
+
+          
+          <div class="method-source-code" id="request_status-source">
+            <pre><span class="ruby-comment"># File freenet/fcp/client.rb, line 294</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">request_status</span>(<span class="ruby-identifier">identifier</span>, <span class="ruby-identifier">global</span>, <span class="ruby-identifier">only_data</span>=<span class="ruby-keyword">true</span>, <span class="ruby-identifier">block</span>=<span class="ruby-keyword">true</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">callback</span>)
+  <span class="ruby-identifier">log</span>(<span class="ruby-constant">DEBUG</span>, <span class="ruby-string">&#39;Requesting status&#39;</span>)
+  <span class="ruby-identifier">message</span> = <span class="ruby-constant">Message</span>.<span class="ruby-identifier">new</span>(<span class="ruby-string">&#39;GetRequestStatus&#39;</span>, <span class="ruby-keyword">nil</span>, <span class="ruby-string">&#39;Identifier&#39;</span>=<span class="ruby-operator">&gt;</span><span class="ruby-identifier">identifier</span>, <span class="ruby-string">&#39;Global&#39;</span>=<span class="ruby-operator">&gt;</span><span class="ruby-identifier">global</span>, <span class="ruby-string">&#39;OnlyData&#39;</span>=<span class="ruby-operator">&gt;</span><span class="ruby-identifier">only_data</span>)
+  <span class="ruby-identifier">send</span>(<span class="ruby-identifier">message</span>)
+  <span class="ruby-identifier">block_message</span>(<span class="ruby-identifier">message</span>, <span class="ruby-identifier">block</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">callback</span>)
+<span class="ruby-keyword">end</span></pre>
+          </div>
+          
+        </div>
+
+        
+
+        
+      </div>
+
+    
+      <div id="method-i-unknown_message" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">unknown_message</span><span
+            class="method-args">(&callback)</span>
+          
+          <span class="method-click-advice">click to toggle source</span>
+          
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+          
+
+          
+          <div class="method-source-code" id="unknown_message-source">
+            <pre><span class="ruby-comment"># File freenet/fcp/client.rb, line 327</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">unknown_message</span>(<span class="ruby-operator">&amp;</span><span class="ruby-identifier">callback</span>)
+  <span class="ruby-ivar">@unknown_callback</span> = <span class="ruby-identifier">callback</span>
+<span class="ruby-keyword">end</span></pre>
+          </div>
+          
+        </div>
+
+        
+
+        
+      </div>
+
+    
+      <div id="method-i-watch_global" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">watch_global</span><span
+            class="method-args">(enabled=true, verbosity=1)</span>
+          
+          <span class="method-click-advice">click to toggle source</span>
+          
+        </div>
+        
+
+        <div class="method-description">
+          
+          <p>Enable global queue watching. This isn&#39;t of much use until I implement
+a global callback for unknown messages.</p>
+          
+          
+
+          
+          <div class="method-source-code" id="watch_global-source">
+            <pre><span class="ruby-comment"># File freenet/fcp/client.rb, line 303</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">watch_global</span>(<span class="ruby-identifier">enabled</span>=<span class="ruby-keyword">true</span>, <span class="ruby-identifier">verbosity</span>=<span class="ruby-value">1</span>)
+  <span class="ruby-identifier">message</span> = <span class="ruby-constant">Message</span>.<span class="ruby-identifier">new</span>(<span class="ruby-string">&#39;WatchGlobal&#39;</span>, <span class="ruby-keyword">nil</span>, <span class="ruby-string">&#39;Enabled&#39;</span>=<span class="ruby-operator">&gt;</span><span class="ruby-identifier">enabled</span>, <span class="ruby-string">&#39;VerbosityMask&#39;</span>=<span class="ruby-operator">&gt;</span><span class="ruby-identifier">verbosity</span>)
+  <span class="ruby-identifier">send</span>(<span class="ruby-identifier">message</span>)
+<span class="ruby-keyword">end</span></pre>
+          </div>
+          
+        </div>
+
+        
+
+        
+      </div>
+
+    
+    </section>
+  
+  </section>
+</main>
+
+
+<footer id="validator-badges" role="contentinfo">
+  <p><a href="http://validator.w3.org/check/referer">Validate</a>
+  <p>Generated by <a href="http://docs.seattlerb.org/rdoc/">RDoc</a> 4.2.0.
+  <p>Based on <a href="http://deveiate.org/projects/Darkfish-RDoc/">Darkfish</a> by <a href="http://deveiate.org">Michael Granger</a>.
+</footer>
+
