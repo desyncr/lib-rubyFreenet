@@ -8,7 +8,7 @@
 #
 # putsite.rb [OPTIONS] ... DIR
 #
-# -h, --help: 
+# -h, --help:
 #     This message
 #
 # -n, --name:
@@ -17,9 +17,8 @@
 #
 # -t, --type:
 #     The type of site, either USK or SSK
-require 'rsite'
+require './rsite'
 require 'getoptlong'
-require 'rdoc/usage'
 
 opts = GetoptLong.new(
   ['--help', '-h', GetoptLong::NO_ARGUMENT],
@@ -36,7 +35,20 @@ type = 'SSK'
 opts.each do |opt, arg|
   case opt
   when '--help'
-    RDoc::usage
+      puts <<-EOF
+putsite.rb [OPTIONS] ... DIR
+
+-h, --help:
+    This message
+
+-n, --name:
+    The site name and the file to save the rsite info to. If this is found
+    in ./ then the details will be loaded from it and the site updated
+
+-t, --type:
+    The type of site, either USK or SSK
+    EOF
+    exit 0
   when '--name'
     name = arg.to_s
   when '--type'
