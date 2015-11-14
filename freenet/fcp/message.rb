@@ -1,4 +1,4 @@
-require 'md5'
+require 'digest/md5'
 require 'thread'
 
 module Freenet
@@ -27,30 +27,30 @@ module Freenet
         @retries = 0
         @type, @data, @items = type.to_s, data, items
         @items = {} unless @items.kind_of? Hash
-        @items['Identifier'] ||= "FCPMessage_#{MD5.md5(Time.now.to_s)}_#{rand(100000)}"
+        @items['Identifier'] ||= "FCPMessage_#{Digest::MD5.hexdigest(Time.now.to_s)}_#{rand(100000)}"
         @identifier = @items['Identifier']
         if ['ClientHello','NodeHello'].include? @type
-          @identifier = 'ClientHello' 
+          @identifier = 'ClientHello'
           @items.delete('Identifier')
         end
-        
+
         if @items['Timeout']
           @timeout = @items['Timeout']
           @items.delete('Timeout')
         end
-        
+
         @callback = callback
         @load_only = false
         @added = Time.now
       end
-      
+
       # Dispatch the callback. Private to FCP::Client
       def callback(status)
         @callback.call(status, self, @response) unless @callback.nil?
       rescue => e
         puts "ERROR: Exception in callback: #{e}\n#{e.backtrace.join("\n")}"
       end
-      
+
       def callback?
         @callback.nil? == false
       end
@@ -67,7 +67,7 @@ module Freenet
         @this_thread = Thread.current
         Thread.stop
       end
-      
+
       # Gets the status for this message. The key ones all apps need to handle are:
       # [:finished] When a request has successfully finished
       # [:redirect] The message has recieved a redirect internally
@@ -76,33 +76,50 @@ module Freenet
       # [:error] An error in the FCP messages occured. This is caused by a bug in rubyFreenet
       def status
         case @type
-        when 'PersistentGet': :get
-        when 'PersistentPut': :put
-        when 'SSKKeypair': :keypair
-        when 'AllData': :finished
-        when 'PersistentGet': :pending
-        when 'SimpleProgress': :progress
-        when 'ProtocolError': :failed
-        when 'URIGenerated': :uri_generated
-        when 'PutSuccessful': :finished
-        when 'PutFailed': :failed
-        when 'ProtocolError': :error
-        when 'DataFound': :found
+        when 'PersistentGet'
+            :get
+        when 'PersistentPut'
+            :put
+        when 'SSKKeypair'
+            :keypair
+        when 'AllData'
+            :finished
+        when 'PersistentGet'
+            :pending
+        when 'SimpleProgress'
+            :progress
+        when 'ProtocolError'
+            :failed
+        when 'URIGenerated'
+            :uri_generated
+        when 'PutSuccessful'
+            :finished
+        when 'PutFailed'
+            :failed
+        when 'ProtocolError'
+            :error
+        when 'DataFound'
+            :found
         when 'GetFailed'
-          if items['RedirectURI']: :redirect
+          if items['RedirectURI']
+              :redirect
           elsif items['Fatal'] == 'false'
             case items['Code']
             when '15' # Node overloaded. Wait then re-request. We can re-use the ID as GetFailed removes the ID from FRED
-              if @request.retries < 5: :retrying
-              else :failed
+              if @request.retries < 5
+                  :retrying
+              else
+                  :failed
               end
-            else :failed
+            else
+                :failed
             end
-          else :failed
+          else
+              :failed
           end
         end
       end
-      
+
       # Write this object to an FCP stream.
       def write(stream)
         stream.write(type.strip+"\n")
@@ -118,7 +135,7 @@ module Freenet
         end
         stream.flush
       end
-      
+
       # Read from stream and create a new message object
       def self.read(stream)
         items = {}

@@ -1,4 +1,4 @@
-require 'md5'
+require 'digest/md5'
 require 'socket'
 require 'thread'
 require 'logger'
@@ -54,7 +54,7 @@ module Freenet
     #
     # See method details for possible status codes. All callbacks may get the following
     # [:error] Freenet reported a ProtocolError
-    # 
+    #
     # === Asynchronous Use
     #
     # Asynchronous is very similar to synchronous use, except the block is run in a separate thread
@@ -68,14 +68,14 @@ module Freenet
     #  # The application will exit here unless you block somehow.
     #
     # ==== Thread safety
-    # 
+    #
     # In callbacks the messages are locked before the callback runs. Always
     # acquire locks with Message#lock before using, but don't forget to release with Message#unlock.
     #
     # Message#synchronize may be implemented later.
     #
     # == Unknown and All Message callbacks
-    # 
+    #
     # Client#all_messages takes a block that takes status, request and response and is called for
     # all messages, including unknown ones. If the message is unknown then request is nil.
     #
@@ -119,16 +119,16 @@ module Freenet
             def logger=(logger)
               @logger = logger
             end
-            
+
             def log(severity, message)
               @logger.add(severity, message)
             end
-            
+
             def write(str)
               log(::Logger::Severity::DEBUG, "Writing: #{str.strip}")
               old_write(str)
             end
-            
+
             def readline
               line = old_readline
               log(::Logger::Severity::DEBUG, "Reading: #{line.strip}")
@@ -164,7 +164,7 @@ module Freenet
       ###
       # Request methods
       ###
-      
+
       # Generates a keypair for SSK use. If used synchronously it returns
       # [InsertURI, RequestURI], otherwise extract InsertURI and RequestURI
       # from response.items
@@ -178,7 +178,7 @@ module Freenet
           [message.response.items['InsertURI'], message.response.items['RequestURI']]
         end
       end
-      
+
       # == Request a file from Freenet.
       #
       # Applicable status messages:
@@ -221,7 +221,7 @@ module Freenet
         send(message)
         block_message(message, block, &callback)
       end
-      
+
       # === Put data in to freenet
       #
       # This is a very simple put, if you wish to insert a directory then use
@@ -258,7 +258,7 @@ module Freenet
         send(message)
         block_message(message, block, &callback)
       end
-      
+
       # Upload a directory to a key, either SSK or USK. This directory must be local to the
       # node we're connecting to.
       def putdir(uri, dir, block=true, options=nil, &callback)
@@ -276,7 +276,7 @@ module Freenet
         send(message)
         block_message(message, block, &callback)
       end
-      
+
       # Put a 'complex' dir
       def put_complex_dir(uri, details, block, options, &callback)
         uri = uri.uri if uri.respond_to? :uri
@@ -285,7 +285,7 @@ module Freenet
         send(message)
         block_message(message, block, &callback)
       end
-      
+
       # Get the request status for a persistent request. Not useful in synchronous systems.
       # This will output some PersistentGet/PersistentPut requests, which don't invoke callbacks,
       # SimpleProgress if Verbosity=1, DataFound for all GET requests and AllData if ReturnType=direct
@@ -297,14 +297,14 @@ module Freenet
         send(message)
         block_message(message, block, &callback)
       end
-      
+
       # Enable global queue watching. This isn't of much use until I implement a global callback for unknown
       # messages.
       def watch_global(enabled=true, verbosity=1)
         message = Message.new('WatchGlobal', nil, 'Enabled'=>enabled, 'VerbosityMask'=>verbosity)
         send(message)
       end
-      
+
       # Modify a persistent request. Pass the options to change, though Identifier and Global
       # must remain the same
       def modify_request(message, options)
@@ -312,18 +312,18 @@ module Freenet
         message = Message.new('ModifyPersistentRequest', nil, options)
         send(message)
       end
-      
+
       # Remove a persistent request from the node. Call this once you've finished with a request.
       def remove_request(message)
         message = Message.new('RemovePersistentRequest', nil, 'Identifier'=>message.identifier, 'Global'=>message.items['Global'])
         send(message)
       end
-      
+
       def list_persistent_requests()
         message = Message.new('ListPersistentRequests', nil, nil)
         send(message)
       end
-      
+
       def unknown_message(&callback)
         @unknown_callback = callback
       end
@@ -334,7 +334,7 @@ module Freenet
 
       # Private calls
       private
-      
+
       # Block the current thread until a response is received, then run callback.
       def block_message(message, block, &callback)
         unless block
@@ -346,7 +346,7 @@ module Freenet
           end
         end
       end
-      
+
       # Send the ClientHello message to the FCP server.
       def hello
         log(DEBUG, 'Sending ClientHello')
@@ -385,27 +385,27 @@ module Freenet
               @callback_threads.delete(thread)
             end
           end
-          
+
           # I'm assuming that setting @running is atomic. There shouldn't be a race
           # condition here as this thread will never set @running.
           if @running == false
             @socket.close
             Thread.exit
           end
-          
+
           begin
             while message = @message_queue.pop(true)
               send_message(message)
             end
           rescue ThreadError => e # If the queue is empty.
           end
-          
+
           # Wait two seconds for communication, shouldn't slow down too much and should save CPU.
           if select([@socket], nil, nil, 2)
             message = read_message
             dispatch_message(message)
           end
-          
+
           @messages.each do |id, message|
             if message.timeout and Time.now > (message.added + message.timeout)
               thread = Thread.new do
@@ -445,7 +445,7 @@ module Freenet
                end
              end
             end
-             
+
             if original_message.callback?
               thread = Thread.new do
                 original_message.callback(status)
@@ -489,7 +489,7 @@ module Freenet
         unless message.load_only
           message.write(@socket)
         end
-        
+
         if message.type == 'RemovePersistentRequest'
           @messages.delete(message.identifier)
         end
