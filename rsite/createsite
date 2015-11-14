@@ -27,9 +27,8 @@
 #
 # SITE_DIRECTORY is the path to the base of the site to insert, eg, ~/my_flog
 
-require 'rsite'
+require './rsite'
 require 'getoptlong'
-require 'rdoc/usage'
 
 opts = GetoptLong.new(
   ['--type', '-t', GetoptLong::REQUIRED_ARGUMENT],
@@ -46,7 +45,7 @@ name = nil
 
 opts.each do |opt, value|
   case opt
-  when '--type':
+  when '--type'
     unless ['USK','SSK'].include? value
       puts "Type \"#{value}\" isn't recognised, please use USK or SSK"
       exit 0
@@ -63,7 +62,29 @@ opts.each do |opt, value|
   when '--version'
     version = value.to_i
   when '--help'
-    RDoc::usage
+    puts <<-EOF
+./createsite [OPTIONS] ... SITE_DIRECTORY
+
+All arguments except SITE_DIRECTORY are optional
+
+-h, --help:
+    Display this message
+
+-n, --name:
+    The name of the freesite, used in the URL, such as SSK@.../name/, defaults to the end of SITE_DIRECTORY.
+    Stick to a-zA-Z0-9_- for characters
+
+-t, --type:
+    The type of site to insert, either USK or SSK, defaults to USK
+
+-k, --keys:
+    The keys if already generated, in the format [INSERT_KEY;REQUEST_KEY], without the SSK@ bit
+
+-v, --version:
+    The initial version of the site to insert, defaults to 1
+
+SITE_DIRECTORY is the path to the base of the site to insert, eg, ~/my_flog
+    EOF
     exit 0
   end
 end
