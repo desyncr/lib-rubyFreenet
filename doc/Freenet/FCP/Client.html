@@ -293,7 +293,7 @@ connection fails</p>
           <div class="method-source-code" id="new-source">
             <pre><span class="ruby-comment"># File freenet/fcp/client.rb, line 97</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">client_name</span>=<span class="ruby-keyword">nil</span>, <span class="ruby-identifier">server</span>=<span class="ruby-string">&quot;127.0.0.1&quot;</span>, <span class="ruby-identifier">port</span>=<span class="ruby-value">9481</span>, <span class="ruby-identifier">options</span>={})
-  <span class="ruby-ivar">@client_name</span> = <span class="ruby-identifier">client_name</span> <span class="ruby-operator">||</span> <span class="ruby-constant">MD5</span>.<span class="ruby-identifier">md5</span>(<span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>.<span class="ruby-identifier">to_s</span>)
+  <span class="ruby-ivar">@client_name</span> = <span class="ruby-identifier">client_name</span> <span class="ruby-operator">||</span> <span class="ruby-constant">Digest</span><span class="ruby-operator">::</span><span class="ruby-constant">MD5</span>.<span class="ruby-identifier">hexdigest</span>(<span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>.<span class="ruby-identifier">to_s</span>)
   <span class="ruby-ivar">@options</span>, <span class="ruby-ivar">@server</span>, <span class="ruby-ivar">@port</span> = <span class="ruby-identifier">options</span>, <span class="ruby-identifier">server</span>, <span class="ruby-identifier">port</span>
   <span class="ruby-ivar">@messages</span> = {}
   <span class="ruby-ivar">@running</span> = <span class="ruby-keyword">false</span>
