@@ -1,4 +1,5 @@
 require './freenet'
+task :default => [:test]
 task :test do
   require 'test/unit'
   require 'freenet/tests/uri_tests'
